@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-heading);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+  PALETTE DERIVATION NOTES
+  ─────────────────────────────────────────────────────────────
+  Light anchor: oklch(93.993% 0.0433 102.962)  — warm yellow-green, h≈103
+  Dark  anchor: oklch(30.025% 0.05241 217.292) — deep blue-slate,   h≈217
+
+  LIGHT MODE strategy:
+  - Background/page:  anchor lightness lifted to 97-98%, chroma pulled to ~0.012, hue 103
+                      keeps the warm parchment warmth without oversaturation
+  - Card/popover:     100% white-ish — oklch(100% 0 0) for clean content surfaces
+  - Primary (brand):  anchor as-is — oklch(93.993% 0.0433 102.962) is too light for
+                      a primary *text/button* context, so primary is stepped down to
+                      oklch(42% 0.10 103) — a deep olive that reads on white
+  - Primary-fg:       near-white from the light anchor family
+  - Secondary:        light tint pulled from anchor, oklch(91% 0.025 103)
+  - Muted:            desaturated warm tone, oklch(93% 0.015 103)
+  - Accent:           same family as secondary for cohesion
+  - Border/input:     slightly cooled warm gray, oklch(88% 0.018 103)
+  - Ring:             mid-olive, oklch(65% 0.07 103)
+  - Destructive:      standard red, untouched by palette (universal signal color)
+  - Charts:           five steps across the olive→slate arc
+    chart-1: oklch(72% 0.10 103)   warm olive
+    chart-2: oklch(55% 0.08 140)   green bridge
+    chart-3: oklch(50% 0.07 180)   teal middle
+    chart-4: oklch(45% 0.065 200)  teal-slate
+    chart-5: oklch(38% 0.06 217)   approaching dark anchor
+
+  DARK MODE strategy:
+  - Background/page:  dark anchor lightness dropped to 14%, oklch(14% 0.035 217)
+  - Card/popover:     dark anchor as-is, oklch(30.025% 0.05241 217.292)
+  - Primary (brand):  light anchor as-is — oklch(93.993% 0.0433 102.962)
+                      the warm yellow-green pops cleanly on dark blue-slate
+  - Primary-fg:       dark anchor for text on primary buttons
+  - Secondary:        step up from bg, oklch(22% 0.042 217)
+  - Muted:            same as secondary
+  - Accent:           step up, oklch(25% 0.045 217)
+  - Border:           subtle, oklch(100% 0 0 / 10%) — keeps it flexible
+  - Input:            oklch(100% 0 0 / 14%)
+  - Ring:             mid-step, oklch(56% 0.05 217)
+  - Destructive:      softened red for dark, oklch(70% 0.19 22)
+  - Sidebar:          fractionally darker than card, oklch(20% 0.04 217)
+  - Charts:           same five steps, reversed luminance for dark backgrounds
+  ─────────────────────────────────────────────────────────────
+*/
+
+:root {
+  /* ── Page surface ── */
+  --background: oklch(97.5% 0.012 102.962);
+  --foreground: oklch(18% 0.03 217.292);
+
+  /* ── Card & popover ── */
+  --card: oklch(100% 0 0);
+  --card-foreground: oklch(18% 0.03 217.292);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(18% 0.03 217.292);
+
+  /* ── Primary — deep olive (readable on white) ── */
+  --primary: oklch(38% 0.095 102.962);
+  --primary-foreground: oklch(96% 0.025 102.962);
+
+  /* ── Secondary — pale warm tint ── */
+  --secondary: oklch(91% 0.025 102.962);
+  --secondary-foreground: oklch(28% 0.05 102.962);
+
+  /* ── Muted — desaturated warm surface ── */
+  --muted: oklch(93% 0.015 102.962);
+  --muted-foreground: oklch(48% 0.04 102.962);
+
+  /* ── Accent — same family as secondary ── */
+  --accent: oklch(91% 0.025 102.962);
+  --accent-foreground: oklch(28% 0.05 102.962);
+
+  /* ── Destructive — universal red signal, palette-independent ── */
+  --destructive: oklch(57.7% 0.245 27.325);
+
+  /* ── Borders & inputs ── */
+  --border: oklch(87% 0.022 102.962);
+  --input: oklch(87% 0.022 102.962);
+  --ring: oklch(62% 0.075 102.962);
+
+  /* ── Charts: warm-olive → teal → slate arc ── */
+  --chart-1: oklch(72% 0.10 102.962);
+  --chart-2: oklch(57% 0.08 140);
+  --chart-3: oklch(50% 0.07 180);
+  --chart-4: oklch(44% 0.065 200);
+  --chart-5: oklch(38% 0.058 217.292);
+
+  /* ── Radius ── */
+  --radius: 0.625rem;
+
+  /* ── Sidebar ── */
+  --sidebar: oklch(94% 0.02 102.962);
+  --sidebar-foreground: oklch(18% 0.03 217.292);
+  --sidebar-primary: oklch(38% 0.095 102.962);
+  --sidebar-primary-foreground: oklch(96% 0.025 102.962);
+  --sidebar-accent: oklch(89% 0.028 102.962);
+  --sidebar-accent-foreground: oklch(28% 0.05 102.962);
+  --sidebar-border: oklch(87% 0.022 102.962);
+  --sidebar-ring: oklch(62% 0.075 102.962);
+}
+
+.dark {
+  /* ── Page surface ── */
+  --background: oklch(14% 0.035 217.292);
+  --foreground: oklch(95% 0.015 102.962);
+
+  /* ── Card & popover — dark anchor as-is ── */
+  --card: oklch(30.025% 0.05241 217.292);
+  --card-foreground: oklch(95% 0.015 102.962);
+  --popover: oklch(30.025% 0.05241 217.292);
+  --popover-foreground: oklch(95% 0.015 102.962);
+
+  /* ── Primary — light anchor as-is, warm on dark ── */
+  --primary: oklch(93.993% 0.0433 102.962);
+  --primary-foreground: oklch(22% 0.042 217.292);
+
+  /* ── Secondary ── */
+  --secondary: oklch(22% 0.042 217.292);
+  --secondary-foreground: oklch(93% 0.02 102.962);
+
+  /* ── Muted ── */
+  --muted: oklch(22% 0.042 217.292);
+  --muted-foreground: oklch(68% 0.03 140);
+
+  /* ── Accent ── */
+  --accent: oklch(25% 0.047 217.292);
+  --accent-foreground: oklch(93% 0.02 102.962);
+
+  /* ── Destructive — softened for dark bg ── */
+  --destructive: oklch(70.4% 0.191 22.216);
+
+  /* ── Borders & inputs ── */
+  --border: oklch(100% 0 0 / 10%);
+  --input: oklch(100% 0 0 / 14%);
+  --ring: oklch(56% 0.05 217.292);
+
+  /* ── Charts: same arc, lightness lifted for dark bg legibility ── */
+  --chart-1: oklch(80% 0.09 102.962);
+  --chart-2: oklch(68% 0.08 140);
+  --chart-3: oklch(62% 0.07 180);
+  --chart-4: oklch(57% 0.065 200);
+  --chart-5: oklch(52% 0.058 217.292);
+
+  /* ── Sidebar ── */
+  --sidebar: oklch(20% 0.04 217.292);
+  --sidebar-foreground: oklch(95% 0.015 102.962);
+  --sidebar-primary: oklch(93.993% 0.0433 102.962);
+  --sidebar-primary-foreground: oklch(22% 0.042 217.292);
+  --sidebar-accent: oklch(25% 0.047 217.292);
+  --sidebar-accent-foreground: oklch(93% 0.02 102.962);
+  --sidebar-border: oklch(100% 0 0 / 10%);
+  --sidebar-ring: oklch(56% 0.05 217.292);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans;
+  }
+}
