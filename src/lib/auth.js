@@ -16,6 +16,28 @@ export const auth = betterAuth({
     enabled: true,
   },
 
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: false,
+    },
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false, //required: false — keeps Google OAuth registration from breaking since Google sign-in doesn't send a role.
+        defaultValue: "buyer",
+        input: true,
+      },
+    },
+    changeEmail: {
+      enabled: true,
+      updateEmailWithoutVerification: true,
+    },
+  },
+
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -27,7 +49,7 @@ export const auth = betterAuth({
     // Optional: if you don't provide a client, database transactions won't be enabled.
     client,
   }),
-  
+
   session: {
     cookieCache: {
       enabled: true,
@@ -36,5 +58,17 @@ export const auth = betterAuth({
     },
   },
 
-  // plugins: [jwt()],
+  plugins: [
+    jwt({
+      jwt: {
+        expirationTime: "7d",
+        definePayload: async ({ user }) => ({
+          id: user?.id,
+          email: user?.email,
+          name: user?.name.at,
+          role: user?.role,
+        })
+      }
+    })
+  ],
 });

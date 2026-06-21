@@ -47,7 +47,8 @@ export default function LoginForm() {
     const email = e.target.email.value;
     const password = e.target.password.value;
 
-    const { error } = await authClient.signIn.email({ email, password });
+    const { data, error } = await authClient.signIn.email({ email, password });
+    console.log(data);
 
     if (error) {
       toast.error("Login Failed", {
@@ -116,7 +117,7 @@ export default function LoginForm() {
           </div>
         </StatefulButton>
 
-        <p className="text-xs flex justify-center items-center gap-2">
+        <div className="text-xs flex justify-center items-center gap-2">
           <Info />
           <div className="flex flex-col items-start gap-1 text-xs opacity-75">
             <span className="opacity-50">
@@ -126,7 +127,7 @@ export default function LoginForm() {
               Or change the role in your profile after <span className="font-bold">Google</span> sign-in!
             </span>
           </div>
-        </p>
+        </div>
 
         <div className="relative">
           <Separator />

@@ -112,11 +112,15 @@ export default function Navbar() {
                       <div className="flex flex-col min-w-40 p-2 gap-1">
                         {submenu.map(
                           ({ href: subHref, title: subtitle }, index) => (
-                            <Link key={subHref + index} href={subHref} passHref>
-                              <NavigationMenuLink className="px-3 py-2 rounded-lg text-sm font-semibold transition-colors hover:bg-accent hover:text-accent-foreground block">
+                            <NavigationMenuLink
+                              key={subHref + index}
+                              asChild
+                              className="px-3 py-2 rounded-lg text-sm font-semibold transition-colors hover:bg-accent hover:text-accent-foreground block"
+                            >
+                              <Link href={subHref}>
                                 {subtitle}
-                              </NavigationMenuLink>
-                            </Link>
+                              </Link>
+                            </NavigationMenuLink>
                           ),
                         )}
                       </div>
@@ -124,17 +128,18 @@ export default function Navbar() {
                   </NavigationMenuItem>
                 ) : (
                   <NavigationMenuItem key={href} className="relative">
-                    <Link href={href} passHref>
-                      <NavigationMenuLink
-                        className={`block px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                          isActive(href)
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                        }`}
-                      >
+                    <NavigationMenuLink
+                      asChild
+                      className={`block px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                        isActive(href)
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      <Link href={href}>
                         {title}
-                      </NavigationMenuLink>
-                    </Link>
+                      </Link>
+                    </NavigationMenuLink>
                   </NavigationMenuItem>
                 ),
               )}
