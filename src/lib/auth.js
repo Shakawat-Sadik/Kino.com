@@ -65,7 +65,7 @@ export const auth = betterAuth({
         definePayload: async ({ user }) => ({
           id: user?.id,
           email: user?.email,
-          name: user?.name.at,
+          name: user?.name,
           role: user?.role,
         })
       }
