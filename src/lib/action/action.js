@@ -9,7 +9,15 @@ const API_URL =
 // Helper: Core fetch wrapper
 // ─────────────────────────────────────
 async function fetchAdminAPI(endpoint, options = {}) {
-  const protectedEndpoints = ["/dashboard", "/my-products", "/my-orders", "/profile", "/profile/", "/wishlist", "/reviews"];
+  const protectedEndpoints = [
+    "/dashboard/:path*",
+    "/add-product",
+    "/my-products/:path*",
+    "/my-orders/:path*",
+    "/wishlist/:path*",
+    "/profile/:path*",
+    "/reviews"
+  ];
 
   const needsAuth = protectedEndpoints.some(
     (route) =>

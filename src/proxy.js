@@ -21,8 +21,10 @@ export const config = {
     "/dashboard/:path*",
     "/add-product",
     "/my-products/:path*",
+    "/my-orders/:path*",
     "/wishlist/:path*",
     "/profile/:path*",
+    "/reviews"
   ],
 };
 
