@@ -10,13 +10,8 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { sonnerFunctionality } from "@/lib/sonnerFunctionality";
 import { eliteDateFormat } from "@/lib/utils";
-import { LogIn } from "lucide-react";
 import { StatefulButton } from "@/components/motion/button/stateful";
-import { EyeClosed } from "lucide-react";
-import { Eye } from "lucide-react";
-import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Info } from "lucide-react";
+import { Info, LogIn, Eye, EyeClosed } from "lucide-react";
 
 const GoogleIcon = () => (
   <svg
@@ -98,8 +93,6 @@ export default function LoginForm() {
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
-        {/* Bug 1 fixed: state={buttonState} not state={socialLoading}       */}
-        {/* Bug 3 fixed: SVG in icon prop, children is plain string only      */}
         <StatefulButton
           state={buttonState}
           loadingText="Logging in with Google..."
@@ -107,7 +100,7 @@ export default function LoginForm() {
           errorText="Something went wrong"
           // icon={<LogIn size={16} />}
           variant="outline"
-          className="w-full flex justify-center items-center"
+          className="w-full"
           onClick={handleGoogle}
           disabled={buttonState === "loading"}
         >
@@ -147,56 +140,28 @@ export default function LoginForm() {
               placeholder="you@example.com"
             />
           </div>
-          <div className="relative space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor="password">Password</Label>
-              {/* <Link
-                href="/auth/forgot-password"
-                className="text-xs text-primary hover:underline"
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPass ? "text" : "password"}
+                required
+                placeholder={showPass ? "your password" : "••••••"}
+                className="pr-9"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass((p) => !p)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPass ? "Hide password" : "Show password"}
               >
-                Forgot password?
-              </Link> */}
-            </div>
-            <Input
-              id="password"
-              name="password"
-              type={showPass ? "text" : "password"}
-              required
-              placeholder={!showPass ? "******" : "password"}
-            />
-            <div
-              onClick={() => setShowPass(!showPass)}
-              className="absolute top-7 right-2"
-            >
-              {showPass ? (
-                <Eye size={16} className=" pointer-cursor" />
-              ) : (
-                <EyeClosed size={16} className=" pointer-cursor" />
-              )}
+                {showPass ? <Eye size={15} /> : <EyeClosed size={15} />}
+              </button>
             </div>
           </div>
 
-          <RadioGroup
-            defaultValue="buyer"
-            className="w-full flex justify-around items-center py-5"
-          >
-            <Field orientation="horizontal">
-              <RadioGroupItem value="buyer" id="buyer" />
-              <FieldContent>
-                <FieldLabel htmlFor="buyer">
-                  I&apos;m looking to buy.
-                </FieldLabel>
-              </FieldContent>
-            </Field>
-            <Field orientation="horizontal">
-              <RadioGroupItem value="seller" id="seller" />
-              <FieldContent>
-                <FieldLabel htmlFor="seller">
-                  I&apos;m selling some goods.
-                </FieldLabel>
-              </FieldContent>
-            </Field>
-          </RadioGroup>
 
           <StatefulButton
             type="submit"

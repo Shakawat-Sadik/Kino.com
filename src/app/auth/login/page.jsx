@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 
 const LoginPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() });
+  console.log("Session Data:", session);
   return session ? <SignedUpRedir user={session?.user} /> : <LoginForm />;
 };
 

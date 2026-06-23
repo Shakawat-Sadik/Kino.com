@@ -31,6 +31,18 @@ export const auth = betterAuth({
         defaultValue: "buyer",
         input: true,
       },
+      location: {
+        type: "string",
+        required: false, //required: false — keeps Google OAuth registration from breaking since Google sign-in doesn't send a role.
+        defaultValue: "All over Bangladesh",
+        input: true,
+      },
+      contact: {
+        type: "number",
+        required: false, //required: false — keeps Google OAuth registration from breaking since Google sign-in doesn't send a role.
+        defaultValue: +880,
+        input: true,
+      },
     },
     changeEmail: {
       enabled: true,
