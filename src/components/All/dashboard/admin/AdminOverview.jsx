@@ -1,4 +1,3 @@
-import { Users, Package, ShoppingCart } from "lucide-react";
 import { getTotalUsers, getTotalProducts, getTotalOrders } from "@/lib/action/action";
 import { AdminStatCard } from "./AdminStatCard";
 
@@ -21,21 +20,21 @@ export async function AdminOverview() {
     {
       title: "Total Users",
       value: usersRes.success ? usersRes.result?.total : null,
-      icon: Users,
+      icon: "Users",
       color: { bg: "bg-blue-500/10", text: "text-blue-500" },
       error: !usersRes.success,
     },
     {
       title: "Total Products",
       value: productsRes.success ? productsRes.result?.total : null,
-      icon: Package,
+      icon: "Package",
       color: { bg: "bg-amber-500/10", text: "text-amber-500" },
       error: !productsRes.success,
     },
     {
       title: "Total Orders",
       value: ordersRes.success ? ordersRes.result?.total : null,
-      icon: ShoppingCart,
+      icon: "ShoppingCart",
       color: { bg: "bg-primary/10", text: "text-primary" },
       error: !ordersRes.success,
     },

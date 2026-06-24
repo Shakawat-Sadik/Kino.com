@@ -10,18 +10,18 @@ const API_URL =
 // ─────────────────────────────────────
 async function fetchAdminAPI(endpoint, options = {}) {
   const protectedEndpoints = [
-    "/dashboard/:path*",
+    "/admin",
+    "/dashboard",
     "/add-product",
-    "/my-products/:path*",
-    "/my-orders/:path*",
-    "/wishlist/:path*",
-    "/profile/:path*",
-    "/reviews"
+    "/my-products",
+    "/my-orders",
+    "/wishlist",
+    "/profile",
+    "/reviews",
   ];
 
   const needsAuth = protectedEndpoints.some(
-    (route) =>
-    endpoint.startsWith(route),
+    (route) => endpoint === route || endpoint.startsWith(`${route}/`),
   );
 
   const headers = {

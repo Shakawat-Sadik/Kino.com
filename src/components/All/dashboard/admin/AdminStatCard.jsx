@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { Users, Package, ShoppingCart } from "lucide-react";
 
 /**
  * AdminStatCard
@@ -9,13 +10,31 @@ import { cn } from "@/lib/utils";
  * Props:
  *   title       string   — card label e.g. "Total Users"
  *   value       number   — the stat number
- *   icon        ReactNode — lucide icon component
+ *   icon        string   — icon key from iconSet
  *   color       string   — tailwind color classes for icon bg + text
  *   trend       string   — optional e.g. "+12% this month" (purely display)
  *   loading     boolean  — shows skeleton when true
  *   index       number   — stagger delay index for entrance animation
  */
-export function AdminStatCard({ title, value, icon: Icon, color, trend, loading = false, index = 0 }) {
+
+const iconSet = {
+  Users,
+  Package,
+  ShoppingCart,
+};
+
+export function AdminStatCard({
+  title,
+  value,
+  icon,
+  color,
+  trend,
+  loading = false,
+  index = 0,
+}) {
+
+  const Icon = iconSet[icon];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -28,13 +47,22 @@ export function AdminStatCard({ title, value, icon: Icon, color, trend, loading 
       className="bg-card border border-border rounded-2xl p-5 flex items-start gap-4"
     >
       {/* Icon */}
-      <div className={cn("p-2.5 rounded-xl shrink-0", color?.bg || "bg-primary/10")}>
-        {Icon && <Icon className={cn("h-5 w-5", color?.text || "text-primary")} />}
+      <div
+        className={cn(
+          "p-2.5 rounded-xl shrink-0",
+          color?.bg || "bg-primary/10",
+        )}
+      >
+        {Icon && (
+          <Icon className={cn("h-5 w-5", color?.text || "text-primary")} />
+        )}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-muted-foreground font-medium truncate">{title}</p>
+        <p className="text-sm text-muted-foreground font-medium truncate">
+          {title}
+        </p>
 
         {loading ? (
           <div className="mt-1.5 h-7 w-24 rounded-lg bg-muted animate-pulse" />

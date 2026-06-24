@@ -82,7 +82,7 @@ export function DashboardSidebar() {
     <motion.aside
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="relative hidden md:flex flex-col shrink-0 h-screen sticky top-0 bg-card border-r border-border overflow-hidden"
+      className=" hidden md:flex flex-col shrink-0 h-screen sticky top-0 bg-card border-r border-border overflow-hidden"
     >
       {/* ── Logo ── */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-border shrink-0">
