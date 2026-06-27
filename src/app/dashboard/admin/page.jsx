@@ -2,8 +2,7 @@ import { Suspense } from "react";
 import { AdminOverview, AdminOverviewSkeleton } from "@/components/All/dashboard/admin/AdminOverview";
 import { AdminCharts, AdminChartsSkeleton } from "@/components/All/dashboard/admin/AdminCharts";
 import { AdminRecentActivity, AdminRecentActivitySkeleton } from "@/components/All/dashboard/admin/AdminRecentActivity";
-import { ShieldCheck } from "lucide-react";
-import { getAdminAnalytics } from "@/lib/action/action";
+import { getAdminAnalytics, getAdminUsers, getAdminOrders } from "@/lib/action/action";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -28,25 +27,28 @@ export default async function AdminDashboardPage() {
     redirect("/unauthorized");
   }
 
-  // Fetch analytics at page level — passed as prop to client component
-  const analyticsRes = await getAdminAnalytics();
+  // Fetch analytics, users, and orders at page level — passed as props to client components
+  const [analyticsRes, usersRes, ordersRes, paymentsRes] = await Promise.all([
+    getAdminAnalytics(),
+    getAdminUsers({ limit: 5 }),
+    getAdminOrders({ limit: 5 }),
+    // getAdminPayments({ limit: 5 }),
+  ]);
+  console.log("AdminDashboardPage analyticsRes:", analyticsRes); // Debugging: Log the analytics response
+
   const analytics = analyticsRes.success ? analyticsRes.result : null;
+  const users = usersRes.success ? usersRes.result : [];
+  const orders = ordersRes.success ? ordersRes.result : [];
+  // const payments = paymentsRes.success ? paymentsRes.result : [];
+
+  console.log("AdminDashboardPage fetch results:", {
+    analyticsRes,
+    usersRes,
+    ordersRes,
+  }); // Debugging: Log the fetch results
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-
-      {/* ── Page heading ── */}
-      <div className="flex items-center gap-3">
-        <div className="bg-primary/10 text-primary p-2 rounded-xl">
-          <ShieldCheck className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-xl font-black text-foreground">Admin Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Platform overview and management
-          </p>
-        </div>
-      </div>
 
       {/* ── Stat cards ── */}
       <Suspense fallback={<AdminOverviewSkeleton />}>
@@ -54,15 +56,14 @@ export default async function AdminDashboardPage() {
       </Suspense>
 
       {/* ── Charts ── */}
-      {analytics ? (
+      <Suspense fallback={<AdminChartsSkeleton />}>
         <AdminCharts analytics={analytics} />
-      ) : (
-        <AdminChartsSkeleton />
-      )}
+      </Suspense>
 
       {/* ── Recent activity tables ── */}
       <Suspense fallback={<AdminRecentActivitySkeleton />}>
-        <AdminRecentActivity />
+        <AdminRecentActivity users={users} orders={orders} />
+        {/* <AdminRecentActivity users={users} orders={orders} payments={payments} /> */}
       </Suspense>
 
       {/* ── Quick action links ── */}

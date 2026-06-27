@@ -1,9 +1,9 @@
-// app/dashboard/buyer/page.jsx
+// app/dashboard/seller/page.jsx
 export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
-import { ShoppingCart, Heart, Package } from "lucide-react";
-import { getBuyerStats, getMyOrders } from "@/lib/action/action";
+import { Package, TrendingUp, BanknoteArrowUp, Clock } from "lucide-react";
+import { getSellerStats, getSellerOrders } from "@/lib/action/action";
 import { DashStatCard, DashStatCardSkeleton } from "@/components/All/dashboard/shared/DashStatCard";
 import { StatusBadge } from "@/components/All/dashboard/shared/StatusBadge";
 import {
@@ -18,33 +18,39 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
 // ── Stat cards ────────────────────────────────────────────────
-async function BuyerStats() {
-  const res = await getBuyerStats();
+async function SellerStats() {
+  const res = await getSellerStats();
   const stats = res.success ? res.result : {};
 
   const cards = [
     {
-      title: "Total Orders",
-      value: stats.totalOrders ?? 0,
-      icon: <ShoppingCart className="h-5 w-5 text-blue-500" />,
+      title: "Total Products",
+      value: stats.totalProducts ?? 0,
+      icon: <Package className="h-5 w-5 text-blue-500" />,
       color: { bg: "bg-blue-500/10" },
     },
     {
-      title: "Wishlist Items",
-      value: stats.wishlistCount ?? 0,
-      icon: <Heart className="h-5 w-5 text-rose-500" />,
-      color: { bg: "bg-rose-500/10" },
+      title: "Total Sales",
+      value: stats.totalSales ?? 0,
+      icon: <TrendingUp className="h-5 w-5 text-green-500" />,
+      color: { bg: "bg-green-500/10" },
     },
     {
-      title: "Recent Purchases",
-      value: stats.recentPurchases ?? 0,
-      icon: <Package className="h-5 w-5 text-primary" />,
+      title: "Total Revenue",
+      value: stats.totalRevenue ? `৳${Number(stats.totalRevenue).toLocaleString()}` : "৳0",
+      icon: <BanknoteArrowUp className="h-5 w-5 text-primary" />,
       color: { bg: "bg-primary/10" },
+    },
+    {
+      title: "Pending Orders",
+      value: stats.pendingOrders ?? 0,
+      icon: <Clock className="h-5 w-5 text-yellow-500" />,
+      color: { bg: "bg-yellow-500/10" },
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, i) => (
         <DashStatCard key={card.title} {...card} index={i} />
       ))}
@@ -52,52 +58,50 @@ async function BuyerStats() {
   );
 }
 
-// ── Recent orders table ───────────────────────────────────────
-async function RecentOrders() {
-  const res = await getMyOrders({ limit: 5 });
+// ── Pending orders requiring action ──────────────────────────
+async function PendingOrdersPreview() {
+  const res = await getSellerOrders({ status: "pending", limit: 5 });
   const orders = res.success ? res.result : [];
 
   return (
     <div className="bg-card border border-border rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Recent Orders</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Your latest 5 orders</p>
+          <h3 className="text-sm font-semibold text-foreground">Pending Orders</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Orders waiting for your action</p>
         </div>
         <Link
-          href="/dashboard/buyer/orders"
+          href="/dashboard/seller/orders"
           className="text-xs text-primary font-semibold flex items-center gap-0.5 hover:underline"
         >
-          View all <ChevronRight className="h-3 w-3" />
+          Manage all <ChevronRight className="h-3 w-3" />
         </Link>
       </div>
 
       {orders.length === 0 ? (
-        <div className="py-10 text-center">
-          <ShoppingCart className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">No orders yet</p>
-          <Link
-            href="/products"
-            className="text-xs text-primary font-semibold mt-1 inline-block hover:underline"
-          >
-            Browse products
-          </Link>
-        </div>
+        <p className="text-sm text-muted-foreground py-6 text-center">
+          No pending orders — you're all caught up!
+        </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="text-xs font-semibold text-muted-foreground pl-0">Product</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground pl-0">Buyer</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground">Product</TableHead>
               <TableHead className="text-xs font-semibold text-muted-foreground">Amount</TableHead>
               <TableHead className="text-xs font-semibold text-muted-foreground">Status</TableHead>
-              <TableHead className="text-xs font-semibold text-muted-foreground">Payment</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order._id} className="border-border">
                 <TableCell className="pl-0 py-3">
-                  <p className="text-sm font-medium text-foreground truncate max-w-[160px]">
+                  <p className="text-sm font-medium text-foreground truncate max-w-[120px]">
+                    {order.buyerInfo?.name || "—"}
+                  </p>
+                </TableCell>
+                <TableCell>
+                  <p className="text-sm text-muted-foreground truncate max-w-[140px]">
                     {order.productTitle || order.productId}
                   </p>
                 </TableCell>
@@ -109,9 +113,6 @@ async function RecentOrders() {
                 <TableCell>
                   <StatusBadge status={order.orderStatus} />
                 </TableCell>
-                <TableCell>
-                  <StatusBadge status={order.paymentStatus} />
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -122,25 +123,25 @@ async function RecentOrders() {
 }
 
 // ── Page ─────────────────────────────────────────────────────
-export default function BuyerDashboardPage() {
+export default function SellerDashboardPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <Suspense fallback={<DashStatCardSkeleton count={3} />}>
-        <BuyerStats />
+      <Suspense fallback={<DashStatCardSkeleton count={4} />}>
+        <SellerStats />
       </Suspense>
 
       <Suspense fallback={
         <div className="bg-card border border-border rounded-2xl p-5 h-48 animate-pulse" />
       }>
-        <RecentOrders />
+        <PendingOrdersPreview />
       </Suspense>
 
       {/* Quick links */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { href: "/dashboard/buyer/orders", label: "My Orders", desc: "Track and manage your orders" },
-          { href: "/dashboard/buyer/wishlist", label: "Wishlist", desc: "Products you saved for later" },
-          { href: "/dashboard/buyer/payments", label: "Payment History", desc: "View all transactions" },
+          { href: "/dashboard/seller/products/add", label: "Add Product", desc: "List a new item for sale" },
+          { href: "/dashboard/seller/products", label: "My Products", desc: "View and manage your listings" },
+          { href: "/dashboard/seller/orders", label: "Manage Orders", desc: "Accept, process and ship orders" },
         ].map((item) => (
           <Link
             key={item.href}

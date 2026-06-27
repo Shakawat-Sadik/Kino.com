@@ -1,11 +1,11 @@
-import { DashboardSidebar } from "@/components/All/dashboard/admin/DashboardSidebar";
-import { DashboardHeader } from "@/components/All/dashboard/admin/DashboardHeader";
 import { RoleGuard } from "@/components/All/auth/RoleGuard";
+import { DashboardHeader } from "@/components/All/dashboard/admin/DashboardHeader";
+import { DashboardSidebar } from "@/components/All/dashboard/admin/DashboardSidebar";
 
-export default function DashboardLayout({ children }) {
+export default function BuyerLayout({ children }) {
   return (
-    <RoleGuard allowedRoles={["admin"]}>
-      <div className="flex h-[calc(100vh-7vh)] overflow-hidden bg-background">
+    <RoleGuard allowedRoles={["buyer"]}>
+      <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background">
         {/* Sidebar — hidden on mobile, shown md+ */}
         <DashboardSidebar />
 
@@ -21,5 +21,3 @@ export default function DashboardLayout({ children }) {
     </RoleGuard>
   );
 }
-
-// <RoleGuard allowedRoles={["admin"]}>{children}</RoleGuard>;
