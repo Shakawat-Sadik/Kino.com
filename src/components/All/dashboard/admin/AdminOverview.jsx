@@ -16,6 +16,12 @@ export async function AdminOverview() {
     getTotalOrders(),
   ]);
 
+  console.log("AdminOverview fetch results:", {
+    usersRes,
+    productsRes,
+    ordersRes,
+  }); // Debugging: Log the fetch results
+
   const stats = [
     {
       title: "Total Users",

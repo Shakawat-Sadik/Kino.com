@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -7,8 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getAdminUsers, getAdminOrders } from "@/lib/action/action";
-import { eliteDateFormat } from "@/lib/utils";
 
 // ── Status badge colours ──────────────────────────────────────
 function StatusBadge({ status }) {
@@ -31,10 +31,7 @@ function StatusBadge({ status }) {
 }
 
 // ── Recent Users ──────────────────────────────────────────────
-async function RecentUsers() {
-  const res = await getAdminUsers({ limit: 5 });
-  const users = res.success ? res.result : [];
-
+function RecentUsers({ users }) {
   return (
     <div className="bg-card border border-border rounded-2xl p-5">
       <div className="mb-4">
@@ -58,10 +55,10 @@ async function RecentUsers() {
               <TableRow key={user._id} className="border-border">
                 <TableCell className="pl-0 py-3">
                   <div>
-                    <p className="text-sm font-medium text-foreground truncate max-w-[140px]">
+                    <p className="text-sm font-medium text-foreground truncate max-w-35">
                       {user.name}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate max-w-[140px]">
+                    <p className="text-xs text-muted-foreground truncate max-w-35">
                       {user.email}
                     </p>
                   </div>
@@ -72,7 +69,7 @@ async function RecentUsers() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={user.status || "active"} />
+                  <StatusBadge status={user.status || "unknown"} />
                 </TableCell>
               </TableRow>
             ))}
@@ -84,10 +81,8 @@ async function RecentUsers() {
 }
 
 // ── Recent Orders ─────────────────────────────────────────────
-async function RecentOrders() {
-  const res = await getAdminOrders({ limit: 5 });
-  const orders = res.success ? res.result : [];
-
+function RecentOrders({ orders, payments }) {
+  console.log("RecentOrders orders:", orders); // Debugging: Log the orders data
   return (
     <div className="bg-card border border-border rounded-2xl p-5">
       <div className="mb-4">
@@ -102,7 +97,7 @@ async function RecentOrders() {
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
               <TableHead className="text-xs font-semibold text-muted-foreground pl-0">Buyer</TableHead>
-              <TableHead className="text-xs font-semibold text-muted-foreground">Amount</TableHead>
+              <TableHead className="text-xs font-semibold text-muted-foreground">Payment</TableHead>
               <TableHead className="text-xs font-semibold text-muted-foreground">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -110,14 +105,15 @@ async function RecentOrders() {
             {orders.map((order) => (
               <TableRow key={order._id} className="border-border">
                 <TableCell className="pl-0 py-3">
-                  <p className="text-sm font-medium text-foreground truncate max-w-[140px]">
+                  <p className="text-sm font-medium text-foreground truncate max-w-35">
                     {order.buyerInfo?.name || "Unknown"}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate max-w-35">
+                    {order.buyerInfo?.email || ""}
                   </p>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm font-semibold text-foreground">
-                    ৳{order.amount?.toLocaleString() ?? "—"}
-                  </span>
+                  <StatusBadge status={order.paymentStatus} />
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={order.orderStatus} />
@@ -132,11 +128,13 @@ async function RecentOrders() {
 }
 
 // ── Exported wrapper — both tables side by side ───────────────
-export async function AdminRecentActivity() {
+// export function AdminRecentActivity({ users, orders, payments }) {
+export function AdminRecentActivity({ users, orders }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <RecentUsers />
-      <RecentOrders />
+      <RecentUsers users={users} />
+      <RecentOrders orders={orders} />
+      {/* <RecentOrders orders={orders} payments={payments} /> */}
     </div>
   );
 }

@@ -19,30 +19,30 @@ import {
   LogOut,
   SquaresExclude,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/motion/theme-toggle";
 import { cn } from "@/lib/utils";
+
 
 const NAV_LINKS = {
   buyer: [
-    { href: "/dashboard/buyer", label: "Overview", icon: LayoutDashboard, exact: true },
-    { href: "/dashboard/buyer/orders", label: "My Orders", icon: ShoppingCart },
-    { href: "/dashboard/buyer/wishlist", label: "Wishlist", icon: Heart },
-    { href: "/dashboard/buyer/payments", label: "Payments", icon: CreditCard },
-    { href: "/dashboard/buyer/profile", label: "Profile", icon: User },
+    { href: "/dashboard/buyer", label: "Overview", title: "My Dashboard", subtitle: "Overview of your buying activity", icon: LayoutDashboard, exact: true },
+    { href: "/dashboard/buyer/orders", label: "My Orders", subtitle: "Track and manage all your orders", icon: <ShoppingCart className="h-5 w-5" /> },
+    { href: "/dashboard/buyer/wishlist", label: "Wishlist", subtitle: "Products you saved for later", icon: <Heart className="h-5 w-5" /> },
+    { href: "/dashboard/buyer/payments", label: "Payments", title: "Payment History", subtitle: "All your transaction records", icon: <CreditCard className="h-5 w-5" /> },
+    { href: "/dashboard/buyer/profile", label: "Profile", title: "Profile Settings", subtitle: "Update your personal information", icon: <User className="h-5 w-5" /> },
   ],
   seller: [
-    { href: "/dashboard/seller", label: "Overview", icon: LayoutDashboard, exact: true },
-    { href: "/dashboard/seller/products", label: "My Products", icon: Package },
-    { href: "/dashboard/seller/orders", label: "Manage Orders", icon: ShoppingCart },
-    { href: "/dashboard/seller/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/dashboard/seller/profile", label: "Profile", icon: User },
+    { href: "/dashboard/seller", label: "Overview", title: "Seller Dashboard", subtitle: "Your business at a glance", icon: LayoutDashboard, exact: true },
+    { href: "/dashboard/seller/products", label: "My Products", subtitle: "Manage your listings", icon: <Package className="h-5 w-5" /> },
+    { href: "/dashboard/seller/orders", label: "Manage Orders", subtitle: "Accept, process and ship incoming orders", icon: <ShoppingCart className="h-5 w-5" /> },
+    { href: "/dashboard/seller/analytics", label: "Analytics", title: "Sales Analytics", subtitle: "Visual overview of your selling performance", icon: <BarChart3 className="h-5 w-5" /> },
+    { href: "/dashboard/seller/profile", label: "Profile", title: "Profile Settings", subtitle: "Update your personal information", icon: <User className="h-5 w-5" /> },
   ],
   admin: [
-    { href: "/dashboard/admin", label: "Overview", icon: LayoutDashboard, exact: true },
-    { href: "/dashboard/admin/users", label: "Manage Users", icon: Users },
-    { href: "/dashboard/admin/products", label: "Manage Products", icon: Package },
-    { href: "/dashboard/admin/orders", label: "Manage Orders", icon: ShoppingCart },
-    { href: "/dashboard/admin/analytics", label: "Analytics", icon: BarChart3 },
+    { href: "/dashboard/admin", label: "Overview", title: "Admin Dashboard", subtitle: "Platform overview and management", icon: LayoutDashboard, exact: true },
+    { href: "/dashboard/admin/users", label: "Manage Users", subtitle: "View, block, and remove user accounts", icon: <Users className="h-5 w-5" /> },
+    { href: "/dashboard/admin/products", label: "Manage Products", subtitle: "Approve, reject, and remove product listings", icon: <Package className="h-5 w-5" /> },
+    { href: "/dashboard/admin/orders", label: "Manage Orders", subtitle: "Monitor all platform orders and resolve disputes", icon: <ShoppingCart className="h-5 w-5" /> },
+    { href: "/dashboard/admin/analytics", label: "Analytics", title: "Platform Analytics", subtitle: "Overall business insights — orders, revenue, users, and categories", icon: <BarChart3 className="h-5 w-5" /> },
   ],
 };
 
@@ -65,15 +65,15 @@ export function DashboardHeader() {
     window.location.href = "/";
   };
 
-  // Derive page title from current path
   const currentLink = links.find((l) =>
     l.exact ? pathname === l.href : pathname.startsWith(l.href)
   );
-  const pageTitle = currentLink?.label || "Dashboard";
+  const pageTitle = currentLink?.title || currentLink?.label || "Dashboard";
+  const pageSubtitle = currentLink?.subtitle || null;
 
   return (
     <>
-      <header className="sticky top-0 z-40 h-16 flex items-center justify-between px-4 sm:px-6 border-b border-border bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 min-h-16 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-background/80 backdrop-blur-xl">
         {/* Left — mobile menu trigger + page title */}
         <div className="flex items-center gap-3">
           <button
@@ -83,21 +83,14 @@ export function DashboardHeader() {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="text-base font-semibold text-foreground">{pageTitle}</h1>
-        </div>
-
-        {/* Right — theme toggle + user badge */}
-        <div className="flex items-center gap-2">
-          <ThemeToggle variant="top-right" />
-          <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-border">
-            <div className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
-              {user?.name?.slice(0, 2)?.toUpperCase() || "U"}
-            </div>
-            <span className="text-sm font-medium text-foreground max-w-32 truncate">
-              {user?.name}
-            </span>
+          <div className="flex flex-col justify-center">
+            <h1 className="text-sm font-semibold text-foreground leading-tight">{pageTitle}</h1>
+            {pageSubtitle && (
+              <p className="text-xs text-muted-foreground leading-tight mt-0.5">{pageSubtitle}</p>
+            )}
           </div>
         </div>
+
       </header>
 
       {/* ── Mobile drawer ── */}

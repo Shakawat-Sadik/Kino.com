@@ -1,4 +1,4 @@
-// components/auth/RoleGuard.jsx
+// components/All/auth/RoleGuard.jsx
 "use client";
 
 import { useEffect } from "react";

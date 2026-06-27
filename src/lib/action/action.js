@@ -5,21 +5,27 @@ const API_URL =
   process.env.NODE_ENV === "production"
     ? process.env.REMOTE_SERVER_URL
     : process.env.SERVER_URL || "http://localhost:5000";
-// ─────────────────────────────────────
-// Helper: Core fetch wrapper
-// ─────────────────────────────────────
-async function fetchAdminAPI(endpoint, options = {}) {
-  const protectedEndpoints = [
-    "/admin",
-    "/dashboard",
-    "/add-product",
-    "/my-products",
-    "/my-orders",
-    "/wishlist",
-    "/profile",
-    "/reviews",
-  ];
 
+// ─────────────────────────────────────────────────────────────
+// Core fetch wrapper
+// ─────────────────────────────────────────────────────────────
+const protectedEndpoints = [
+  "/admin",
+  "/dashboard",
+  "/add-product",
+  "/my-products",
+  "/my-orders",
+  "/wishlist",
+  "/profile",
+  "/checkout",
+  "/payments",
+  "/reviews",
+  "/seller",
+  "/buyer",
+];
+
+async function fetchAPI(endpoint, options = {}) {
+  console.log("Connecting to:", API_URL);
   const needsAuth = protectedEndpoints.some(
     (route) => endpoint === route || endpoint.startsWith(`${route}/`),
   );
@@ -31,11 +37,9 @@ async function fetchAdminAPI(endpoint, options = {}) {
 
   if (needsAuth) {
     const token = await getAuthHeaders();
-
     if (!token) {
       return { success: false, message: "Not authenticated", result: null };
     }
-    
     headers.authorization = `Bearer ${token}`;
   }
 
@@ -47,6 +51,7 @@ async function fetchAdminAPI(endpoint, options = {}) {
     });
 
     const data = await res.json();
+    console.log(`[fetchAPI] ${endpoint} response:`, data);
 
     if (!res.ok || !data.success) {
       return {
@@ -58,8 +63,7 @@ async function fetchAdminAPI(endpoint, options = {}) {
 
     return data;
   } catch (error) {
-    // console.error("API Error:", error);
-    console.error("[fetchAdminAPI] Error:", error.message);
+    console.error("[fetchAPI] Error:", error.message);
     console.error("Cause:", error.cause);
     console.error("Stack:", error.stack);
     return {
@@ -71,38 +75,253 @@ async function fetchAdminAPI(endpoint, options = {}) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// STATS
-// Three separate calls as requested — one per stat card
-// Express routes needed:
+// PUBLIC PRODUCT ACTIONS
+// Express routes:
+//   GET /products             → all products (public)
+//   GET /products/:id         → single product (public)
+// ─────────────────────────────────────────────────────────────
+
+export async function getProducts(query = {}) {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.category) params.set("category", query.category);
+  if (query.condition) params.set("condition", query.condition);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.order) params.set("order", query.order);
+  if (query.page) params.set("page", String(query.page));
+  if (query.limit) params.set("limit", String(query.limit));
+  const qs = params.toString();
+  return await fetchAPI(`/products${qs ? `?${qs}` : ""}`);
+}
+
+export async function getProductById(id) {
+  return await fetchAPI(`/products/${id}`);
+}
+
+// ─────────────────────────────────────────────────────────────
+// SELLER — PRODUCT ACTIONS
+// Express routes:
+//   GET    /seller/products           → seller's own products
+//   POST   /seller/products           → create product
+//   PATCH  /seller/products/:id       → update product
+//   DELETE /seller/products/:id       → delete product
+// ─────────────────────────────────────────────────────────────
+
+export async function getMyProducts(query = {}) {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.category) params.set("category", query.category);
+  if (query.status) params.set("status", query.status);
+  if (query.page) params.set("page", String(query.page));
+  if (query.limit) params.set("limit", String(query.limit));
+  const qs = params.toString();
+  return await fetchAPI(`/seller/products${qs ? `?${qs}` : ""}`);
+}
+
+export async function createProduct(productData) {
+  return await fetchAPI("/seller/products", {
+    method: "POST",
+    body: JSON.stringify({
+      ...productData,
+      status: "available",
+      dateUploaded: new Date().toISOString(),
+    }),
+  });
+}
+
+export async function updateProduct(productId, updateData) {
+  return await fetchAPI(`/seller/products/${productId}`, {
+    method: "PATCH",
+    body: JSON.stringify(updateData),
+  });
+}
+
+export async function deleteProduct(productId) {
+  return await fetchAPI(`/seller/products/${productId}`, {
+    method: "DELETE",
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// SELLER — ORDER ACTIONS
+// Express routes:
+//   GET   /seller/orders              → seller's incoming orders
+//   PATCH /seller/orders/:id/status   → update order status
+// ─────────────────────────────────────────────────────────────
+
+export async function getSellerOrders(query = {}) {
+  const params = new URLSearchParams();
+  if (query.status) params.set("status", query.status);
+  if (query.search) params.set("search", query.search);
+  if (query.page) params.set("page", String(query.page));
+  if (query.limit) params.set("limit", String(query.limit));
+  const qs = params.toString();
+  return await fetchAPI(`/seller/orders${qs ? `?${qs}` : ""}`);
+}
+
+export async function updateSellerOrderStatus(orderId, status) {
+  return await fetchAPI(`/seller/orders/${orderId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// SELLER — STATS
+// Express routes:
+//   GET /seller/stats → { totalProducts, totalSales, totalRevenue, pendingOrders }
+// ─────────────────────────────────────────────────────────────
+
+export async function getSellerStats() {
+  return await fetchAPI("/seller/stats");
+}
+
+// ─────────────────────────────────────────────────────────────
+// SELLER — ANALYTICS
+// Express routes:
+//   GET /seller/analytics → { monthlySales, topProducts }
+// ─────────────────────────────────────────────────────────────
+
+export async function getSellerAnalytics() {
+  return await fetchAPI("/seller/analytics");
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUYER — ORDER ACTIONS
+// Express routes:
+//   GET   /buyer/orders              → buyer's own orders
+//   PATCH /buyer/orders/:id/cancel   → cancel a pending order
+// ─────────────────────────────────────────────────────────────
+
+export async function getMyOrders(query = {}) {
+  const params = new URLSearchParams();
+  if (query.status) params.set("status", query.status);
+  if (query.page) params.set("page", String(query.page));
+  if (query.limit) params.set("limit", String(query.limit));
+  const qs = params.toString();
+  return await fetchAPI(`/buyer/orders${qs ? `?${qs}` : ""}`);
+}
+
+export async function cancelOrder(orderId) {
+  return await fetchAPI(`/buyer/orders/${orderId}/cancel`, {
+    method: "PATCH",
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUYER — WISHLIST ACTIONS
+// Express routes:
+//   GET    /wishlist          → user's wishlist products (populated)
+//   POST   /wishlist/:id      → add product to wishlist
+//   DELETE /wishlist/:id      → remove product from wishlist
+// ─────────────────────────────────────────────────────────────
+
+export async function getWishlist() {
+  return await fetchAPI("/wishlist");
+}
+
+export async function addToWishlist(productId) {
+  return await fetchAPI(`/wishlist/${productId}`, {
+    method: "POST",
+  });
+}
+
+export async function removeFromWishlist(productId) {
+  return await fetchAPI(`/wishlist/${productId}`, {
+    method: "DELETE",
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUYER — PAYMENT HISTORY
+// Express routes:
+//   GET /payments/my-history → buyer's payment records
+// ─────────────────────────────────────────────────────────────
+
+export async function getMyPayments(query = {}) {
+  const params = new URLSearchParams();
+  if (query.status) params.set("status", query.status);
+  if (query.page) params.set("page", String(query.page));
+  if (query.limit) params.set("limit", String(query.limit));
+  const qs = params.toString();
+  return await fetchAPI(`/payments/my-history${qs ? `?${qs}` : ""}`);
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUYER — STATS
+// Express routes:
+//   GET /buyer/stats → { totalOrders, wishlistCount, recentPurchases }
+// ─────────────────────────────────────────────────────────────
+
+export async function getBuyerStats() {
+  return await fetchAPI("/buyer/stats");
+}
+
+// ─────────────────────────────────────────────────────────────
+// SHARED — PROFILE ACTIONS
+// Express routes:
+//   GET   /profile → current user's profile
+//   PATCH /profile → update profile fields
+// ─────────────────────────────────────────────────────────────
+
+export async function getMyProfile() {
+  return await fetchAPI("/profile");
+}
+
+export async function updateMyProfile(updateData) {
+  const allowedFields = ["name", "contact", "location", "image"];
+  const filtered = {};
+  for (const field of allowedFields) {
+    if (updateData[field] !== undefined) filtered[field] = updateData[field];
+  }
+  return await fetchAPI("/profile", {
+    method: "PATCH",
+    body: JSON.stringify(filtered),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN — STATS
+// Express routes:
 //   GET /admin/stats/users    → { success, result: { total } }
 //   GET /admin/stats/products → { success, result: { total } }
 //   GET /admin/stats/orders   → { success, result: { total } }
 // ─────────────────────────────────────────────────────────────
 
 export async function getTotalUsers() {
-  return await fetchAdminAPI("/admin/stats/users");
+  return await fetchAPI("/admin/stats/users");
 }
 
 export async function getTotalProducts() {
-  return await fetchAdminAPI("/admin/stats/products");
+  return await fetchAPI("/admin/stats/products");
 }
 
 export async function getTotalOrders() {
-  return await fetchAdminAPI("/admin/stats/orders");
+  return await fetchAPI("/admin/stats/orders");
+}
+
+export async function getTotalRevenue() {
+  return await fetchAPI("/admin/stats/revenue");
+}
+
+export async function getTotalRevenueByMonth() {
+  return await fetchAPI("/admin/stats/revenue-by-month");
+}
+
+export async function getAdminSummary() {
+  return await fetchAPI("/admin/analytics/summary")
 }
 
 // ─────────────────────────────────────────────────────────────
-// USERS
-// Express routes needed:
+// ADMIN — USERS
+// Express routes:
 //   GET    /admin/users              → { success, result: User[] }
 //   PATCH  /admin/users/:id/status   → { success, result: User }
 //   DELETE /admin/users/:id          → { success, result: null }
 // ─────────────────────────────────────────────────────────────
 
-
 export async function getAdminUsers(query = {}) {
   const params = new URLSearchParams();
-
   if (query.search) params.set("search", query.search);
   if (query.role) params.set("role", query.role);
   if (query.sort) params.set("sort", query.sort);
@@ -110,39 +329,38 @@ export async function getAdminUsers(query = {}) {
   if (query.status) params.set("status", query.status);
   if (query.page) params.set("page", String(query.page));
   if (query.limit) params.set("limit", String(query.limit));
-
-  // const queryString = params.toString();
-  // console.log("Query String for getAdminUsers:", queryString); // Debugging line
-  // const endpoint = `/admin/users${queryString ? `?${queryString}` : ""}`;
-
   const qs = params.toString();
-  return await fetchAdminAPI(`/admin/users${qs ? `?${qs}` : ""}`);
+  return await fetchAPI(`/admin/users${qs ? `?${qs}` : ""}`);
 }
 
-
-
 export async function updateUserStatus(userId, status) {
-  return await fetchAdminAPI(`/admin/users/${userId}/status`, {
+  return await fetchAPI(`/admin/users/${userId}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
 }
 
+export async function updateAdminUser(userId, { name, role, location, contact }) {
+  const payload = {};
+  if (name !== undefined) payload.name = name;
+  if (role !== undefined) payload.role = role;
+  if (location !== undefined) payload.location = location;
+  if (contact !== undefined) payload.contact = contact;
+  return await fetchAPI(`/admin/users/${userId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function deleteUser(userId) {
-  return await fetchAdminAPI(`/admin/users/${userId}`, {
+  return await fetchAPI(`/admin/users/${userId}`, {
     method: "DELETE",
   });
 }
 
-/**
- * Fetch a single doctor by slug
- */
-// export async function getDoctorBySlug(slug) {
-//   return await fetchAPI(`/doctors/${slug}`);
-// }
 // ─────────────────────────────────────────────────────────────
-// PRODUCTS
-// Express routes needed:
+// ADMIN — PRODUCTS
+// Express routes:
 //   GET    /admin/products              → { success, result: Product[] }
 //   PATCH  /admin/products/:id/status   → { success, result: Product }
 //   DELETE /admin/products/:id          → { success, result: null }
@@ -155,27 +373,39 @@ export async function getAdminProducts(query = {}) {
   if (query.status) params.set("status", query.status);
   if (query.page) params.set("page", String(query.page));
   if (query.limit) params.set("limit", String(query.limit));
-
   const qs = params.toString();
-  return await fetchAdminAPI(`/admin/products${qs ? `?${qs}` : ""}`);
+  return await fetchAPI(`/admin/products${qs ? `?${qs}` : ""}`);
+}
+
+export async function updateAdminProduct(productId, { title, category, condition, price, description }) {
+  const payload = {};
+  if (title !== undefined) payload.title = title;
+  if (category !== undefined) payload.category = category;
+  if (condition !== undefined) payload.condition = condition;
+  if (price !== undefined) payload.price = price;
+  if (description !== undefined) payload.description = description;
+  return await fetchAPI(`/admin/products/${productId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function updateProductStatus(productId, status) {
-  return await fetchAdminAPI(`/admin/products/${productId}/status`, {
+  return await fetchAPI(`/admin/products/${productId}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
 }
 
-export async function deleteProduct(productId) {
-  return await fetchAdminAPI(`/admin/products/${productId}`, {
+export async function deleteAdminProduct(productId) {
+  return await fetchAPI(`/admin/products/${productId}`, {
     method: "DELETE",
   });
 }
 
 // ─────────────────────────────────────────────────────────────
-// ORDERS
-// Express routes needed:
+// ADMIN — ORDERS
+// Express routes:
 //   GET   /admin/orders            → { success, result: Order[] }
 //   PATCH /admin/orders/:id/status → { success, result: Order }
 // ─────────────────────────────────────────────────────────────
@@ -186,21 +416,20 @@ export async function getAdminOrders(query = {}) {
   if (query.status) params.set("status", query.status);
   if (query.page) params.set("page", String(query.page));
   if (query.limit) params.set("limit", String(query.limit));
-
   const qs = params.toString();
-  return await fetchAdminAPI(`/admin/orders${qs ? `?${qs}` : ""}`);
+  return await fetchAPI(`/admin/orders${qs ? `?${qs}` : ""}`);
 }
 
 export async function updateOrderStatus(orderId, status) {
-  return await fetchAdminAPI(`/admin/orders/${orderId}/status`, {
+  return await fetchAPI(`/admin/orders/${orderId}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
 }
 
 // ─────────────────────────────────────────────────────────────
-// ANALYTICS
-// Express route needed:
+// ADMIN — ANALYTICS
+// Express routes:
 //   GET /admin/analytics → {
 //     success,
 //     result: {
@@ -213,91 +442,64 @@ export async function updateOrderStatus(orderId, status) {
 // ─────────────────────────────────────────────────────────────
 
 export async function getAdminAnalytics() {
-  return await fetchAdminAPI("/admin/analytics");
+  return await fetchAPI("/admin/analytics");
 }
 
-// // ─────────────────────────────────────
-// // APPOINTMENT ACTIONS
-// // ─────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// UPLOAD ACTIONS
+// Express routes:
+//   POST   /upload             → upload image (raw binary body)
+//   DELETE /upload/:publicId   → delete image by Cloudinary public_id
+// ─────────────────────────────────────────────────────────────
 
-// /**
-//  * Fetch appointments for a specific user
-//  */
-// export async function getAppointments(email) {
-//   return await fetchAPI(`/appointments?email=${encodeURIComponent(email)}`);
-// }
+export async function uploadImage(file, folder = "Kino.com/products") {
+  try {
+    const token = await getAuthHeaders();
+    if (!token) return { success: false, message: "Not authenticated", result: null };
 
-// /**
-//  * Fetch a single appointment by ID
-//  */
-// export async function getAppointmentById(id) {
-//   return await fetchAPI(`/appointments/${id}`);
-// }
+    const res = await fetch(`${API_URL}/upload`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": file.type,
+        "x-upload-folder": folder,
+        "x-upload-filename": file.name,
+      },
+      body: file,
+      cache: "no-store",
+    });
 
-// /**
-//  * Create a new appointment
-//  */
-// export async function createAppointment(appointmentData) {
-//   return await fetchAPI("/appointments", {
-//     method: "POST",
-//     body: JSON.stringify({
-//       ...appointmentData,
-//       createdAt: new Date(),
-//       status: appointmentData.status || "Confirmed",
-//     }),
-//   });
-// }
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, message: data.message || "Upload failed", result: null };
+    }
+    return data;
+  } catch (error) {
+    console.error("[uploadImage] Error:", error.message);
+    return { success: false, message: "Network error during upload.", result: null };
+  }
+}
 
-// /**
-//  * Update an existing appointment (only allowed fields)
-//  */
-// export async function updateAppointment(id, updateData) {
-//   const allowedFields = [
-//     "patientName",
-//     "gender",
-//     "phone",
-//     "appointmentDate",
-//     "appointmentTime",
-//     "notes",
-//     "status",
-//   ];
+export async function deleteImage(publicId) {
+  try {
+    const token = await getAuthHeaders();
+    if (!token) return { success: false, message: "Not authenticated", result: null };
 
-//   const filteredData = {};
-//   for (const field of allowedFields) {
-//     if (updateData[field] !== undefined) {
-//       filteredData[field] = updateData[field];
-//     }
-//   }
+    // publicId may contain slashes (e.g. "Kino.com/products/abc123") —
+    // the Express wildcard route /*publicId captures the full path correctly
+    const res = await fetch(`${API_URL}/upload/${publicId}`, {
+      method: "DELETE",
+      headers: { authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
 
-//   return await fetchAPI(`/appointments/${id}`, {
-//     method: "PATCH",
-//     body: JSON.stringify(filteredData),
-//   });
-// }
-
-// /**
-//  * Delete an appointment
-//  */
-// export async function deleteAppointment(id) {
-//   return await fetchAPI(`/appointments/${id}`, {
-//     method: "DELETE",
-//   });
-// }
-
-// // ─────────────────────────────────────
-// // REVIEW ACTIONS
-// // ─────────────────────────────────────
-
-// /**
-//  * Add a review for a doctor
-//  */
-// export async function addReview(doctorSlug, reviewData) {
-//   return await fetchAPI("/reviews", {
-//     method: "POST",
-//     body: JSON.stringify({
-//       ...reviewData,
-//       doctorSlug,
-//       createdAt: new Date(),
-//     }),
-//   });
-// }
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, message: data.message || "Delete failed", result: null };
+    }
+    return data;
+  } catch (error) {
+    console.error("[deleteImage] Error:", error.message);
+    return { success: false, message: "Network error during delete.", result: null };
+  }
+}

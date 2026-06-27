@@ -15,15 +15,15 @@ export default async function getAuthHeaders() {
   try {
     const incomingHeaders = await headers();
     const cookie = incomingHeaders.get("cookie");
-    console.log("[getAuthHeaders] cookie present:", !!cookie);
-    console.log("[getAuthHeaders] cookie value:", cookie?.slice(0, 80));
+    // console.log("[getAuthHeaders] cookie present:", !!cookie); //double !! makes it a boolean from positive direction
+    // console.log("[getAuthHeaders] cookie value:", cookie?.slice(0, 80));
 
     if (!cookie) return null;
 
     const baseURL =
       process.env.NODE_ENV === "production"
-        ? process.env.BETTER_AUTH_URL
-        : "http://localhost:3000";
+        ? process.env.REMOTE_CLIENTSIDE_BETTER_AUTH_URL : process.env.BETTER_AUTH_URL
+        || "http://localhost:3000";
 
     const res = await fetch(`${baseURL}/api/auth/token`, {
       headers: {

@@ -1,11 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "motion/react";
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -15,55 +14,180 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Sector,
 } from "recharts";
 
-// Chart colour palette — uses your oklch primary hue family
 const CHART_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "var(--chart-5)",
+  "var(--chart-4)",
+  "var(--chart-3)",
+  "var(--chart-2)",
+  "var(--chart-1)",
 ];
 
-function ChartCard({ title, description, children, index = 0 }) {
+const TOOLTIP_STYLE = {
+  background: "var(--popover)",
+  border: "1px solid var(--border)",
+  borderRadius: "12px",
+  fontSize: 12,
+  color: "var(--foreground)",
+  boxShadow: "0 8px 24px var(--primary) / 0.1",
+};
+
+function ChartCard({ title, description, accentColor, children, index = 0 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
-      className="bg-card border border-border rounded-2xl p-5"
+      transition={{
+        duration: 0.5,
+        delay: index * 0.12,
+        ease: [0.23, 1, 0.32, 1],
+      }}
+      whileHover={{ y: -3, transition: { duration: 0.2, ease: "easeOut" } }}
+      className="relative bg-card border border-border rounded-2xl p-5 overflow-hidden group"
     >
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      {/* Accent stripe */}
+      <div
+        className="absolute top-0 left-0 right-0 h-0.75 rounded-t-2xl"
+        style={{ background: `var(${accentColor})` }}
+      />
+
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
+        style={{
+          background: `radial-gradient(ellipse at 50% 0%, var(${accentColor}) / 0.08 0%, transparent 65%)`,
+        }}
+      />
+
+      <div className="relative mb-4">
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block w-2 h-2 rounded-full shrink-0"
+            style={{ background: `var(${accentColor})` }}
+          />
+          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        </div>
         {description && (
-          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 ml-4">
+            {description}
+          </p>
         )}
       </div>
-      {children}
+
+      <div className="relative">{children}</div>
     </motion.div>
   );
 }
 
-/**
- * AdminCharts — Client Component
- *
- * Props:
- *   analytics — result from getAdminAnalytics() passed down from the page
- *   {
- *     monthlyOrders:       [{ month: "Jan", count: 12 }, ...]
- *     categoryPerformance: [{ category: "Electronics", count: 34 }, ...]
- *     userGrowth:          [{ month: "Jan", count: 8 }, ...]
- *     revenueByMonth:      [{ month: "Jan", revenue: 125000 }, ...]
- *   }
- */
+// Custom bar shape — gradient + subtle top shine
+const CustomBar = (props) => {
+  const { x, y, width, height, fill } = props;
+  if (!height || height <= 0) return null;
+  return (
+    <g>
+      <rect x={x} y={y} width={width} height={height} fill={fill} rx={6} ry={6} />
+      <rect
+        x={x + 2}
+        y={y + 2}
+        width={Math.max(width - 4, 0)}
+        height={Math.min(height * 0.28, 14)}
+        fill="white"
+        opacity={0.09}
+        rx={4}
+        ry={4}
+      />
+    </g>
+  );
+};
+
+// Custom active donut shape — expands + shows center label
+const ActivePieShape = (props) => {
+  const {
+    cx, cy,
+    innerRadius, outerRadius,
+    startAngle, endAngle,
+    fill, payload, value,
+  } = props;
+
+  const label = payload.role ?? payload.category ?? "";
+  const displayLabel = label
+    ? label.charAt(0).toUpperCase() + label.slice(1)
+    : "Total";
+
+  return (
+    <g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius - 4}
+        outerRadius={outerRadius + 7}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      {/* Outer glow ring */}
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={outerRadius + 10}
+        outerRadius={outerRadius + 14}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.28}
+      />
+      {/* Center value */}
+      <text
+        x={cx}
+        y={cy - 7}
+        textAnchor="middle"
+        fontSize={22}
+        fontWeight={700}
+        fill="var(--foreground)"
+      >
+        {value}
+      </text>
+      {/* Center label */}
+      <text
+        x={cx}
+        y={cy + 13}
+        textAnchor="middle"
+        fontSize={11}
+        fill="var(--muted-foreground)"
+      >
+        {displayLabel}
+      </text>
+    </g>
+  );
+};
+
+const formatYearMonth = (val) => {
+  if (!val) return "";
+  const [year, month] = val.split("-");
+  const date = new Date(year, month - 1);
+  return date.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+};
+
+const formatFullDate = (val) => {
+  if (!val) return "";
+  const date = new Date(val);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
+
+
 export function AdminCharts({ analytics }) {
   const {
     monthlyOrders = [],
     categoryPerformance = [],
     userGrowth = [],
     revenueByMonth = [],
-  } = analytics || {};
+  } = analytics ?? {};
+
+  const [activeRoleIdx, setActiveRoleIdx] = useState(0);
+  const [activeCatIdx, setActiveCatIdx] = useState(0);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -71,86 +195,102 @@ export function AdminCharts({ analytics }) {
       {/* Monthly Orders — Bar Chart */}
       <ChartCard
         title="Monthly Orders"
-        description="Order volume over the last 6 months"
+        description="Order volume over time"
+        accentColor="--chart-5"
         index={0}
       >
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={monthlyOrders} barSize={28}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <defs>
+              <linearGradient id="gradOrders" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--chart-5)" stopOpacity={1} />
+                <stop offset="100%" stopColor="var(--chart-5)" stopOpacity={0.5} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--border)"
+              vertical={false}
+            />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+              tickFormatter={formatYearMonth}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               axisLine={false}
               tickLine={false}
               width={32}
             />
             <Tooltip
-              contentStyle={{
-                background: "hsl(var(--popover))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "12px",
-                fontSize: 12,
-                color: "hsl(var(--foreground))",
-              }}
-              cursor={{ fill: "hsl(var(--accent))" }}
+              contentStyle={TOOLTIP_STYLE}
+              labelFormatter={formatYearMonth}
+              cursor={{ fill: "var(--accent)", fillOpacity: 0.45, radius: 6 }}
             />
-            <Bar dataKey="count" fill={CHART_COLORS[0]} radius={[6, 6, 0, 0]} name="Orders" />
+            <Bar
+              dataKey="count"
+              fill="url(#gradOrders)"
+              name="Orders"
+              shape={CustomBar}
+              animationDuration={900}
+              animationEasing="ease-out"
+            />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* User Growth — Line Chart */}
+      {/* User Roles — Donut Chart */}
       <ChartCard
-        title="User Growth"
-        description="New user registrations per month"
+        title="User Roles"
+        description="Distribution of buyers, sellers, and admins"
+        accentColor="--chart-2"
         index={1}
       >
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={userGrowth}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis
-              dataKey="month"
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-              axisLine={false}
-              tickLine={false}
-              width={32}
-            />
-            <Tooltip
-              contentStyle={{
-                background: "hsl(var(--popover))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "12px",
-                fontSize: 12,
-                color: "hsl(var(--foreground))",
-              }}
-            />
-            <Line
-              type="monotone"
+          <PieChart>
+            <Pie
+              data={userGrowth}
               dataKey="count"
-              stroke={CHART_COLORS[2]}
-              strokeWidth={2.5}
-              dot={{ r: 4, fill: CHART_COLORS[2], strokeWidth: 0 }}
-              activeDot={{ r: 6 }}
-              name="New Users"
+              nameKey="role"
+              cx="50%"
+              cy="50%"
+              innerRadius={55}
+              outerRadius={85}
+              paddingAngle={3}
+              activeIndex={activeRoleIdx}
+              onMouseEnter={(_, idx) => setActiveRoleIdx(idx)}
+              animationDuration={900}
+              animationEasing="ease-out"
+            >
+              {userGrowth.map((_, i) => (
+                <Cell key={`cell-role-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={TOOLTIP_STYLE}
+              formatter={(value, name) => [
+                value,
+                name.charAt(0).toUpperCase() + name.slice(1),
+              ]}
             />
-          </LineChart>
+            <Legend
+              iconType="circle"
+              iconSize={8}
+              wrapperStyle={{ fontSize: 11, color: "var(--muted-foreground)" }}
+              formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+            />
+          </PieChart>
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* Category Performance — Pie Chart */}
+      {/* Category Performance — Donut Chart */}
       <ChartCard
         title="Category Performance"
         description="Product distribution by category"
+        accentColor="--chart-3"
         index={2}
       >
         <ResponsiveContainer width="100%" height={220}>
@@ -164,24 +304,20 @@ export function AdminCharts({ analytics }) {
               innerRadius={55}
               outerRadius={85}
               paddingAngle={3}
+              activeIndex={activeCatIdx}
+              onMouseEnter={(_, idx) => setActiveCatIdx(idx)}
+              animationDuration={900}
+              animationEasing="ease-out"
             >
               {categoryPerformance.map((_, i) => (
-                <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                <Cell key={`cell-cat-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip
-              contentStyle={{
-                background: "hsl(var(--popover))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "12px",
-                fontSize: 12,
-                color: "hsl(var(--foreground))",
-              }}
-            />
+            <Tooltip contentStyle={TOOLTIP_STYLE} />
             <Legend
               iconType="circle"
               iconSize={8}
-              wrapperStyle={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}
+              wrapperStyle={{ fontSize: 11, color: "var(--muted-foreground)" }}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -190,36 +326,51 @@ export function AdminCharts({ analytics }) {
       {/* Revenue by Month — Bar Chart */}
       <ChartCard
         title="Revenue by Month"
-        description="Total revenue generated per month"
+        description="Total revenue generated per day/month"
+        accentColor="--chart-4"
         index={3}
       >
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={revenueByMonth} barSize={28}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <defs>
+              <linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--chart-4)" stopOpacity={1} />
+                <stop offset="100%" stopColor="var(--chart-4)" stopOpacity={0.5} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--border)"
+              vertical={false}
+            />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+              tickFormatter={formatFullDate}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               axisLine={false}
               tickLine={false}
               width={48}
               tickFormatter={(v) => `৳${(v / 1000).toFixed(0)}k`}
             />
             <Tooltip
-              contentStyle={{
-                background: "hsl(var(--popover))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "12px",
-                fontSize: 12,
-                color: "hsl(var(--foreground))",
-              }}
+              contentStyle={TOOLTIP_STYLE}
+              labelFormatter={formatFullDate}
               formatter={(v) => [`৳${v.toLocaleString()}`, "Revenue"]}
+              cursor={{ fill: "var(--accent)", fillOpacity: 0.45, radius: 6 }}
             />
-            <Bar dataKey="revenue" fill={CHART_COLORS[3]} radius={[6, 6, 0, 0]} name="Revenue" />
+            <Bar
+              dataKey="revenue"
+              fill="url(#gradRevenue)"
+              name="Revenue"
+              shape={CustomBar}
+              animationDuration={900}
+              animationEasing="ease-out"
+            />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -228,19 +379,21 @@ export function AdminCharts({ analytics }) {
   );
 }
 
-/**
- * AdminChartsSkeleton
- * Shown while analytics data is loading
- */
 export function AdminChartsSkeleton() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="bg-card border border-border rounded-2xl p-5">
-          <div className="h-4 w-36 bg-muted rounded-lg animate-pulse mb-1.5" />
-          <div className="h-3 w-48 bg-muted rounded-lg animate-pulse mb-4" />
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: i * 0.08, ease: "easeOut" }}
+          className="bg-card border border-border rounded-2xl p-5 overflow-hidden"
+        >
+          <div className="h-4 w-32 bg-muted rounded-lg animate-pulse mb-1.5" />
+          <div className="h-3 w-44 bg-muted rounded-lg animate-pulse mb-4" />
           <div className="h-[220px] w-full bg-muted rounded-xl animate-pulse" />
-        </div>
+        </motion.div>
       ))}
     </div>
   );

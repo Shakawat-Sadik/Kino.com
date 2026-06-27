@@ -13,7 +13,6 @@ import {
   CreditCard,
   User,
   Users,
-  ShieldCheck,
   BarChart3,
   ChevronLeft,
   ChevronRight,
@@ -46,6 +45,7 @@ const NAV_LINKS = {
     { href: "/dashboard/admin/products", label: "Manage Products", icon: Package },
     { href: "/dashboard/admin/orders", label: "Manage Orders", icon: ShoppingCart },
     { href: "/dashboard/admin/analytics", label: "Analytics", icon: BarChart3 },
+    { href: "/dashboard/admin/profile", label: "Profile", icon: User },
   ],
 };
 
@@ -79,10 +79,11 @@ export function DashboardSidebar() {
   };
 
   return (
+    <div className="hidden md:flex shrink-0 h-screen sticky top-0 relative z-40">
     <motion.aside
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className=" hidden md:flex flex-col shrink-0 h-screen sticky top-0 bg-card border-r border-border overflow-hidden"
+      className="flex flex-col h-full bg-card border-r border-border overflow-hidden"
     >
       {/* ── Logo ── */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-border shrink-0">
@@ -198,17 +199,19 @@ export function DashboardSidebar() {
         </button>
       </div>
 
-      {/* ── Collapse toggle ── */}
-      <button
-        onClick={() => setCollapsed((c) => !c)}
-        className="absolute top-[72px] -right-3 z-10 h-6 w-6 rounded-full bg-card border border-border flex items-center justify-center shadow-sm hover:bg-accent transition-colors"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed
-          ? <ChevronRight className="h-3 w-3 text-muted-foreground" />
-          : <ChevronLeft className="h-3 w-3 text-muted-foreground" />
-        }
-      </button>
     </motion.aside>
+
+    {/* ── Collapse toggle — outside aside so overflow-hidden doesn't clip it ── */}
+    <button
+      onClick={() => setCollapsed((c) => !c)}
+      className="absolute top-[72px] -right-3 z-50 h-6 w-6 rounded-full bg-card border border-border flex items-center justify-center shadow-sm hover:bg-accent transition-colors"
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+    >
+      {collapsed
+        ? <ChevronRight className="h-3 w-3 text-muted-foreground" />
+        : <ChevronLeft className="h-3 w-3 text-muted-foreground" />
+      }
+    </button>
+    </div>
   );
 }

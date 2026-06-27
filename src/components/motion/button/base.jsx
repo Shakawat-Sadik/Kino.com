@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { motion, useReducedMotion } from "motion/react";
 import { forwardRef } from "react";
 import { SPRING_PRESS } from "@/lib/ease";

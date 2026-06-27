@@ -5,26 +5,69 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Menu, X, LogOut, User, SquaresExclude,
-  ChevronDown, LayoutDashboard, ShieldCheck, Package,
+  Menu,
+  X,
+  LogOut,
+  User,
+  UserStar,
+  SquaresExclude,
+  ChevronDown,
+  LayoutDashboard,
+  ShieldCheck,
+  ShieldUser,
+  Package,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { ThemeToggle } from "../motion/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuGroup,
-  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import {
-  NavigationMenu, NavigationMenuContent, NavigationMenuItem,
-  NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger,
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
 } from "../ui/navigation-menu";
 
 // ── Role-aware dashboard link config ─────────────────────────
 const DASHBOARD_LINK = {
-  buyer:  { href: "/dashboard/buyer",  label: "My Dashboard", icon: LayoutDashboard },
-  seller: { href: "/dashboard/seller", label: "Seller Dashboard", icon: Package },
-  admin:  { href: "/dashboard/admin",  label: "Admin Panel", icon: ShieldCheck },
+  buyer: {
+    href: "/dashboard/buyer",
+    label: "My Dashboard",
+    icon: LayoutDashboard,
+  },
+  seller: {
+    href: "/dashboard/seller",
+    label: "Seller Dashboard",
+    icon: Package,
+  },
+  admin: { href: "/dashboard/admin", label: "Admin Panel", icon: ShieldCheck },
+};
+
+const profile_link = {
+  buyer: {
+    href: "/dashboard/buyer/profile",
+    label: "My Profile",
+    icon: <User className="h-4 w-4 text-muted-foreground" />,
+  },
+  seller: {
+    href: "/dashboard/seller/profile",
+    label: "My Profile",
+    icon: <UserStar className="h-4 w-4 text-muted-foreground" />,
+  },
+  admin: {
+    href: "/dashboard/admin/profile",
+    label: "My Profile",
+    icon: <ShieldUser className="h-4 w-4 text-muted-foreground" />,
+  },
 };
 
 export default function Navbar() {
@@ -33,9 +76,15 @@ export default function Navbar() {
   const { data: session } = authClient.useSession();
 
   const user = session?.user;
-  const role = user?.role;                          // ← fixed: was session?.role
+  const role = user?.role; // ← fixed: was session?.role
   const isAuthenticated = Boolean(user);
-  const profileInitial = user?.name?.split(" ").length > 1 ? user?.name?.split(" ").map(n=>n[0]).join("") : user?.name?.slice(0, 2)?.toUpperCase() || "U";
+  const profileInitial =
+    user?.name?.split(" ").length > 1
+      ? user?.name
+          ?.split(" ")
+          .map((n) => n[0])
+          .join("")
+      : user?.name?.slice(0, 2)?.toUpperCase() || "U";
 
   // Role-aware dashboard config — fallback to buyer if role is undefined
   const dashboard = DASHBOARD_LINK[role] ?? DASHBOARD_LINK.buyer;
@@ -61,10 +110,10 @@ export default function Navbar() {
       href: "/categories",
       title: "Categories",
       submenu: [
-        { href: "/products?category=electronics",   title: "Electronics" },
-        { href: "/products?category=furniture",     title: "Furniture" },
-        { href: "/products?category=vehicles",      title: "Vehicles" },
-        { href: "/products?category=fashion",       title: "Fashion" },
+        { href: "/products?category=electronics", title: "Electronics" },
+        { href: "/products?category=furniture", title: "Furniture" },
+        { href: "/products?category=vehicles", title: "Vehicles" },
+        { href: "/products?category=fashion", title: "Fashion" },
         { href: "/products?category=mobile-phones", title: "Mobile Phones" },
       ],
     },
@@ -74,7 +123,6 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl">
       <div className="mx-auto px-5 sm:px-10 lg:px-15">
         <div className="flex items-center justify-between h-16">
-
           {/* ── Logo ── */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="bg-primary text-primary-foreground p-2 rounded-xl group-hover:scale-105 transition-transform">
@@ -131,7 +179,7 @@ export default function Navbar() {
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
-                )
+                ),
               )}
             </NavigationMenuList>
           </NavigationMenu>
@@ -150,10 +198,17 @@ export default function Navbar() {
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ type: "spring", visualDuration: 0.4, bounce: 0.5 }}
+                      transition={{
+                        type: "spring",
+                        visualDuration: 0.4,
+                        bounce: 0.5,
+                      }}
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.image} alt={user?.name || "Profile"} />
+                        <AvatarImage
+                          src={user?.image}
+                          alt={user?.name || "Profile"}
+                        />
                         <AvatarFallback className="text-xs font-bold bg-primary-foreground/20 text-primary-foreground">
                           {profileInitial}
                         </AvatarFallback>
@@ -182,11 +237,13 @@ export default function Navbar() {
                   <DropdownMenuGroup className="py-1">
                     <DropdownMenuItem asChild>
                       <Link
-                        href="/profile"
+                        href={profile_link[role]?.href}
                         className="flex items-center gap-2.5 px-3 py-2 text-sm cursor-pointer"
                       >
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        My Profile
+                        {profile_link[role]?.icon || (
+                          <User className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        {profile_link[role]?.label || "My Profile"}
                       </Link>
                     </DropdownMenuItem>
 
@@ -241,7 +298,11 @@ export default function Navbar() {
               className="p-2 rounded-xl text-muted-foreground hover:bg-accent transition-colors"
               aria-label="Toggle menu"
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
         </div>
@@ -299,7 +360,10 @@ export default function Navbar() {
                   {/* ── Fixed: Avatar and text are siblings, not nested ── */}
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-accent">
                     <Avatar className="h-10 w-10 shrink-0">
-                      <AvatarImage src={user?.image} alt={user?.name || "Profile"} />
+                      <AvatarImage
+                        src={user?.image}
+                        alt={user?.name || "Profile"}
+                      />
                       <AvatarFallback className="text-sm font-bold bg-primary/10 text-primary">
                         {profileInitial}
                       </AvatarFallback>
@@ -315,12 +379,14 @@ export default function Navbar() {
                   </div>
 
                   <Link
-                    href="/profile"
+                    href={profile_link[role]?.href}
                     onClick={() => setMobileOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-border hover:bg-accent transition-colors"
                   >
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    My Profile
+                    {profile_link[role]?.icon || (
+                      <User className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    {profile_link[role]?.label || "My Profile"}
                   </Link>
 
                   {/* Role-conditional dashboard link (mobile) */}
