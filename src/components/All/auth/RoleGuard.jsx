@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import Loader from "@/app/loading";
 
 export function RoleGuard({ allowedRoles, children }) {
   const router = useRouter();
@@ -24,11 +25,10 @@ export function RoleGuard({ allowedRoles, children }) {
     }
   }, [session, isPending, router, allowedRoles]);
 
-  // Loading state
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <span className="text-muted-foreground text-sm">Loading...</span>
+        <Loader />
       </div>
     );
   }

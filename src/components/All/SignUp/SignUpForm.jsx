@@ -27,9 +27,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FileUpload } from "@/components/motion/file-upload";
 
 // Import the location data
 import bdLocations from "@/lib/bd-locations.json";
+
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PROFILES_PRESET;
+
+async function uploadToCloudinary(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+  formData.append("folder", "Kino.com/profiles");
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    { method: "POST", body: formData }
+  );
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error?.message || "Upload failed");
+  return data.secure_url;
+}
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -41,6 +59,10 @@ export default function SignUpForm() {
   const [buttonState, setButtonState] = useState("idle");
   const [showPass, setShowPass] = useState(false);
   const [userName, setUserName] = useState(null);
+
+  // Photo upload state
+  const [photoItems, setPhotoItems] = useState([]);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
 
   // Location States
   const [selectedDivision, setSelectedDivision] = useState("");
@@ -129,6 +151,37 @@ export default function SignUpForm() {
     }
   };
 
+  const handlePhotoAdded = async (addedItems, rawFiles) => {
+    const item = addedItems[0];
+    const file = rawFiles[0];
+    try {
+      const url = await uploadToCloudinary(file);
+      setUploadedImageUrl(url);
+      setPhotoItems((prev) =>
+        prev.map((i) => i.id === item.id ? { ...i, status: "success", progress: 100 } : i)
+      );
+    } catch {
+      setPhotoItems((prev) =>
+        prev.map((i) => i.id === item.id ? { ...i, status: "error", error: "Upload failed" } : i)
+      );
+    }
+  };
+
+  const handlePhotoRetry = async (item) => {
+    if (!item.file) return;
+    try {
+      const url = await uploadToCloudinary(item.file);
+      setUploadedImageUrl(url);
+      setPhotoItems((prev) =>
+        prev.map((i) => i.id === item.id ? { ...i, status: "success", progress: 100, error: undefined } : i)
+      );
+    } catch {
+      setPhotoItems((prev) =>
+        prev.map((i) => i.id === item.id ? { ...i, status: "error", error: "Upload failed" } : i)
+      );
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setButtonState("loading");
@@ -137,7 +190,7 @@ export default function SignUpForm() {
     const email = e.target.email.value;
     const password = e.target.password.value;
     const name = e.target.name.value;
-    const image = e.target.image.value || "";
+    const image = uploadedImageUrl || e.target.image.value || "";
     const role = e.target.role.value;
 
     if (password.length < 6 || !/[A-Z]/.test(password) || !/[a-z]/.test(password)) {
@@ -188,7 +241,7 @@ export default function SignUpForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-8 md:py-14 lg:py-20">
+    <div className="w-full max-w-xl mx-auto px-4 py-8 md:py-14 lg:py-20">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-black text-foreground">Create Account</h1>
         <p className="text-muted-foreground mt-2">Join <span className="text-chart-3">Kino.com</span> today</p>
@@ -217,8 +270,44 @@ export default function SignUpForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">Photo URL (Optional)</Label>
-            <Input id="image" name="image" type="url" placeholder="https://example.com/photo.jpg" />
+            <Label>Photo (Optional)</Label>
+            <div className="flex flex-col gap-3 items-center">
+              {/* URL input */}
+              <div className="flex-1 space-y-1 w-full">
+                <p className="text-xs text-muted-foreground">Paste a URL</p>
+                <Input
+                  id="image"
+                  name="image"
+                  type="url"
+                  placeholder="https://example.com/photo.jpg"
+                  disabled={!!uploadedImageUrl}
+                  className={uploadedImageUrl ? "opacity-40" : ""}
+                />
+              </div>
+
+              {/* OR divider */}
+              <div className="flex items-center justify-around gap-1 mt-5 shrink-0">
+                <span className="text-[10px] text-muted-foreground leading-none">or</span>
+              </div>
+
+              {/* File upload */}
+              <div className="flex-1 space-y-1 w-full">
+                <p className="text-xs text-muted-foreground">Upload a file</p>
+                <FileUpload
+                  value={photoItems}
+                  onValueChange={setPhotoItems}
+                  onFilesAdded={handlePhotoAdded}
+                  onRemove={() => setUploadedImageUrl("")}
+                  onRetry={handlePhotoRetry}
+                  accept="image/*"
+                  multiple={false}
+                  maxFiles={1}
+                  title="Drop photo here"
+                  description="PNG, JPG, WEBP"
+                  browseLabel="Browse"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="relative space-y-2">

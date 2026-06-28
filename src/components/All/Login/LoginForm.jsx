@@ -33,7 +33,7 @@ export default function LoginForm() {
   const redirect = searchParams.get("redirect") || "/";
   const [loading, setLoading] = useState(false);
   const [buttonState, setButtonState] = useState("idle");
-  const [showPass, setShowPass] = useState(true);
+  const [showPass, setShowPass] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -184,7 +184,7 @@ export default function LoginForm() {
           href="/auth/sign-up"
           className="text-primary font-semibold hover:underline"
         >
-          Register
+          Register now!
         </Link>
       </p>
     </div>

@@ -12,6 +12,8 @@
     "@base-ui/react": "^1.6.0",
     "@better-auth/mongo-adapter": "1.6.11",
     "@heroicons/react": "^2.2.0",
+    "@stripe/react-stripe-js": "^6.6.0",
+    "@stripe/stripe-js": "^9.8.0",
     "better-auth": "1.6.11",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",

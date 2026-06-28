@@ -65,6 +65,7 @@ export default function BuyerProfilePage() {
     setSaveState("loading");
     const res = await updateMyProfile(form);
     if (res.success) {
+      await authClient.updateUser({ name: form.name, image: form.image || null });
       setSaveState("success");
       toast.success("Profile updated");
       setProfile((prev) => ({ ...prev, ...form }));
@@ -224,19 +225,25 @@ export default function BuyerProfilePage() {
 
         {/* Photo upload */}
         <div className="space-y-3">
-          <Label className="flex items-center gap-1.5 text-xs">Profile Photo</Label>
-          {form.image && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 rounded-xl px-3 py-2">
-              <span className="truncate flex-1 font-mono">{form.image}</span>
+          <Label htmlFor="image" className="flex items-center gap-1.5 text-xs">Profile Photo</Label>
+          <div className="flex gap-2">
+            <Input
+              id="image"
+              value={form.image}
+              onChange={handleChange("image")}
+              placeholder="https://… paste image URL or upload below"
+              className="bg-background font-mono text-xs"
+            />
+            {form.image && (
               <button
                 type="button"
                 onClick={() => setForm((prev) => ({ ...prev, image: "" }))}
-                className="shrink-0 text-destructive hover:underline text-xs"
+                className="shrink-0 text-destructive hover:underline text-xs whitespace-nowrap"
               >
                 Clear
               </button>
-            </div>
-          )}
+            )}
+          </div>
           <FileUpload
             multiple={false}
             accept="image/*"

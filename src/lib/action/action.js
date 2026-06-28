@@ -169,7 +169,7 @@ export async function updateSellerOrderStatus(orderId, status) {
 // ─────────────────────────────────────────────────────────────
 // SELLER — STATS
 // Express routes:
-//   GET /seller/stats → { totalProducts, totalSales, totalRevenue, pendingOrders }
+//   GET /seller/stats → { totalProducts, totalSales (delivered orders), totalRevenue, pendingOrders }
 // ─────────────────────────────────────────────────────────────
 
 export async function getSellerStats() {
@@ -247,6 +247,67 @@ export async function getMyPayments(query = {}) {
   return await fetchAPI(`/payments/my-history${qs ? `?${qs}` : ""}`);
 }
 
+// ─────────────────────────────────────────────────────────────
+// STRIPE PAYMENT ACTIONS
+// Express routes:
+//   POST /payments/create-intent  → { clientSecret }
+//   POST /payments/confirm        → { orderId }
+// ─────────────────────────────────────────────────────────────
+
+export async function createPaymentIntent({ amount, productId, productTitle }) {
+  return await fetchAPI("/payments/create-intent", {
+    method: "POST",
+    body: JSON.stringify({ amount, productId, productTitle }),
+  });
+}
+
+export async function confirmPayment({ transactionId, productId, sellerEmail, amount, productTitle }) {
+  return await fetchAPI("/payments/confirm", {
+    method: "POST",
+    body: JSON.stringify({ transactionId, productId, sellerEmail, amount, productTitle }),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// PUBLIC STATS (Home Page)
+// Express route: GET /stats → { totalProducts, totalSellers, totalBuyers, totalOrders }
+// ─────────────────────────────────────────────────────────────
+
+export async function getMarketplaceStats() {
+  return await fetchAPI("/stats");
+}
+
+// ─────────────────────────────────────────────────────────────
+// PUBLIC SELLERS
+// Express route: GET /sellers/top → top sellers by product count (public)
+// ─────────────────────────────────────────────────────────────
+
+export async function getTopSellers(limit = 3) {
+  return await fetchAPI(`/sellers/top?limit=${limit}`);
+}
+
+// ─────────────────────────────────────────────────────────────
+// REVIEWS
+// Express routes:
+//   GET  /reviews                → latest high-rated reviews (public)
+//   GET  /reviews/:productId     → reviews for a product (public)
+//   POST /reviews                → submit a review (buyer only)
+// ─────────────────────────────────────────────────────────────
+
+export async function getAllReviews(limit = 6) {
+  return await fetchAPI(`/reviews?limit=${limit}`);
+}
+
+export async function getProductReviews(productId) {
+  return await fetchAPI(`/reviews/${productId}`);
+}
+
+export async function addReview({ productId, rating, comment }) {
+  return await fetchAPI("/reviews", {
+    method: "POST",
+    body: JSON.stringify({ productId, rating, comment }),
+  });
+}
 // ─────────────────────────────────────────────────────────────
 // BUYER — STATS
 // Express routes:
@@ -401,6 +462,22 @@ export async function deleteAdminProduct(productId) {
   return await fetchAPI(`/admin/products/${productId}`, {
     method: "DELETE",
   });
+}
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN — PAYMENTS
+// Express routes:
+//   GET /admin/payments → { success, result: Payment[], total }
+// ─────────────────────────────────────────────────────────────
+
+export async function getAdminPayments(query = {}) {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.status) params.set("status", query.status);
+  if (query.page) params.set("page", String(query.page));
+  if (query.limit) params.set("limit", String(query.limit));
+  const qs = params.toString();
+  return await fetchAPI(`/admin/payments${qs ? `?${qs}` : ""}`);
 }
 
 // ─────────────────────────────────────────────────────────────

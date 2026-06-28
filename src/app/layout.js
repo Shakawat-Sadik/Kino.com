@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import Navbar from "@/components/All/Navbar";
+import Footer from "@/components/All/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
           <main className="max-w-screen mx-auto w-full">
             <Navbar />
             {children}
+            <Footer />
             <Toaster />
           </main>
         </ThemeProvider>

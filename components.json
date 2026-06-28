@@ -25,6 +25,7 @@
     "@beui": "https://beui.dev/r/{name}.json",
     "@intentui": "https://intentui.com/r/{name}",
     "@gooseui": "https://gooseui.pro/r/{name}.json",
-    "@aceternity": "https://ui.aceternity.com/registry/{name}.json"
+    "@aceternity": "https://ui.aceternity.com/registry/{name}.json",
+    "@kokonutui": "https://kokonutui.com/r/{name}.json"
   }
 }

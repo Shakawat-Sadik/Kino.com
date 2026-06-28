@@ -1,4 +1,5 @@
 "use client";
+"use no memo";
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -64,7 +65,7 @@ export default function SellerProductsPage() {
     if (search) query.search = search;
     if (statusFilter !== "All") query.status = statusFilter;
     const res = await getMyProducts(query);
-    setProducts(res.success ? res.result : []);
+    setProducts(res.success ? (res.result ?? []).filter(Boolean) : []);
     setLoading(false);
   }, [search, statusFilter]);
 
@@ -77,7 +78,7 @@ export default function SellerProductsPage() {
     const res = await deleteProduct(productId);
     if (res.success) {
       toast.success("Product deleted");
-      setProducts((prev) => prev.filter((p) => p._id !== productId));
+      setProducts((prev) => prev.filter((p) => p?._id && p._id !== productId));
     } else {
       toast.error(res.message || "Failed to delete product");
     }
@@ -99,7 +100,7 @@ export default function SellerProductsPage() {
     if (res.success) {
       toast.success("Product updated");
       setProducts((prev) =>
-        prev.map((p) =>
+        prev.filter(Boolean).map((p) =>
           p._id === editProduct._id ? { ...p, ...updateData } : p
         )
       );
@@ -196,7 +197,7 @@ export default function SellerProductsPage() {
             </TableHeader>
             <TableBody>
               <AnimatePresence initial={false}>
-                {products.map((product, i) => (
+                {products.filter(Boolean).map((product, i) => (
                   <motion.tr
                     key={product._id}
                     initial={{ opacity: 0, y: 8 }}
