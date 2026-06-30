@@ -19,7 +19,7 @@ const STATUS_STYLES = {
   // Product statuses
   available:  "bg-green-500/10 text-green-600 dark:text-green-400",
   sold:       "bg-muted text-muted-foreground",
-  removed:    "bg-red-500/10 text-red-500",
+  rejected:   "bg-red-500/10 text-red-500",
 
   // User statuses
   active:     "bg-green-500/10 text-green-600 dark:text-green-400",

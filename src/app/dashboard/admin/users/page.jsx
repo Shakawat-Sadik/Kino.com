@@ -58,6 +58,10 @@ import {
   User,
   Phone,
   MapPin,
+  Eye,
+  Mail,
+  Calendar,
+  ShieldCheck as RoleIcon,
 } from "lucide-react";
 import { SpecializedPagination } from "@/components/All/dashboard/shared/SpecializedPagination";
 
@@ -65,6 +69,20 @@ const ROLES = ["All", "buyer", "seller", "admin"];
 const EDIT_ROLES = ["buyer", "seller", "admin"];
 const STATUSES = ["All", "active", "blocked"];
 const PAGE_LIMIT = 10;
+
+function DetailRow({ icon: Icon, label, value }) {
+  return (
+    <div className="flex items-start gap-3 py-2.5 border-b border-border/40 last:border-0">
+      <div className="mt-0.5 p-1.5 rounded-lg bg-muted shrink-0">
+        <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-0.5">{label}</p>
+        <p className="text-sm font-medium text-foreground break-all">{value || "—"}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -80,6 +98,10 @@ export default function AdminUsersPage() {
   const [editTarget, setEditTarget] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", role: "", location: "", contact: "" });
   const [editState, setEditState] = useState("idle");
+
+  // View dialog state
+  const [viewTargetId, setViewTargetId] = useState(null);
+  const viewTarget = users.find((u) => u._id === viewTargetId) || null;
 
   useEffect(() => {
     let cancelled = false;
@@ -113,6 +135,7 @@ export default function AdminUsersPage() {
     });
     setEditTarget(user);
     setEditState("idle");
+    setViewTargetId(null);
   };
 
   const handleEditSave = async (e) => {
@@ -157,6 +180,7 @@ export default function AdminUsersPage() {
     if (res.success) {
       toast.success("User deleted");
       setUsers((prev) => prev.filter((u) => u._id !== userId));
+      setViewTargetId((prev) => (prev === userId ? null : prev));
     } else {
       toast.error(res.message || "Failed to delete user");
     }
@@ -286,69 +310,16 @@ export default function AdminUsersPage() {
                       <StatusBadge status={user.status || "active"} />
                     </TableCell>
                     <TableCell className="pr-5">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Edit */}
+                      <div className="flex items-center justify-end">
                         <Button
                           variant="outline"
                           size="sm"
                           className="text-xs gap-1"
-                          disabled={busy === user._id}
-                          onClick={() => openEdit(user)}
+                          onClick={() => setViewTargetId(user._id)}
                         >
-                          <Pencil className="h-3 w-3" />
-                          Edit
+                          <Eye className="h-3 w-3" />
+                          View
                         </Button>
-
-                        {/* Block / Unblock */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`text-xs gap-1 ${
-                            user.status === "blocked"
-                              ? "text-green-600 border-green-500/30 hover:bg-green-500/10"
-                              : "text-yellow-600 border-yellow-500/30 hover:bg-yellow-500/10"
-                          }`}
-                          disabled={busy === user._id}
-                          onClick={() => handleToggleStatus(user)}
-                        >
-                          {user.status === "blocked" ? (
-                            <><ShieldCheck className="h-3 w-3" />Unblock</>
-                          ) : (
-                            <><ShieldOff className="h-3 w-3" />Block</>
-                          )}
-                        </Button>
-
-                        {/* Delete */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs gap-1 text-red-500 border-red-500/30 hover:bg-red-500/10"
-                              disabled={busy === user._id}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete {user.name}?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will permanently delete the account and all associated data. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(user._id)}
-                                className="bg-red-500 hover:bg-red-600 text-white"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
                       </div>
                     </TableCell>
                   </motion.tr>
@@ -365,6 +336,117 @@ export default function AdminUsersPage() {
           onPageChange={setPage}
         />
       </div>
+
+      {/* View user dialog */}
+      <Dialog open={!!viewTarget} onOpenChange={(open) => { if (!open) setViewTargetId(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Users className="h-4 w-4" />
+              User Details
+            </DialogTitle>
+          </DialogHeader>
+          {viewTarget && (
+            <>
+              <div className="space-y-0.5">
+                <DetailRow icon={User} label="Full Name" value={viewTarget.name} />
+                <DetailRow icon={Mail} label="Email" value={viewTarget.email} />
+                <DetailRow icon={RoleIcon} label="Role" value={viewTarget.role} />
+                <DetailRow icon={Phone} label="Phone" value={viewTarget.contact ? String(viewTarget.contact) : ""} />
+                <DetailRow
+                  icon={MapPin}
+                  label="Location"
+                  value={
+                    viewTarget.location
+                      ? typeof viewTarget.location === "object"
+                        ? [viewTarget.location.area, viewTarget.location.district, viewTarget.location.division, viewTarget.location.country].filter(Boolean).join(", ")
+                        : viewTarget.location
+                      : ""
+                  }
+                />
+                <DetailRow
+                  icon={Calendar}
+                  label="Joined"
+                  value={viewTarget.createdAt ? new Date(viewTarget.createdAt).toLocaleDateString("en-BD", { year: "numeric", month: "long", day: "numeric" }) : ""}
+                />
+                <div className="flex items-center gap-3 py-2.5">
+                  <div className="mt-0.5 p-1.5 rounded-lg bg-muted shrink-0">
+                    <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Status</p>
+                    <StatusBadge status={viewTarget.status || "active"} />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1"
+                  disabled={busy === viewTarget._id}
+                  onClick={() => openEdit(viewTarget)}
+                >
+                  <Pencil className="h-3 w-3" />
+                  Edit
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`text-xs gap-1 ${
+                    viewTarget.status === "blocked"
+                      ? "text-green-600 border-green-500/30 hover:bg-green-500/10"
+                      : "text-yellow-600 border-yellow-500/30 hover:bg-yellow-500/10"
+                  }`}
+                  disabled={busy === viewTarget._id}
+                  onClick={() => handleToggleStatus(viewTarget)}
+                >
+                  {viewTarget.status === "blocked" ? (
+                    <><ShieldCheck className="h-3 w-3" />Unblock</>
+                  ) : (
+                    <><ShieldOff className="h-3 w-3" />Block</>
+                  )}
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs gap-1 text-red-500 border-red-500/30 hover:bg-red-500/10"
+                      disabled={busy === viewTarget._id}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete {viewTarget.name}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete the account and all associated data. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(viewTarget._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit user dialog */}
       <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>

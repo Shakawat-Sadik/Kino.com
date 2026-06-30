@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Lock } from "lucide-react";
 
 const CARD_ELEMENT_OPTIONS = {
+  hidePostalCode: true,
   style: {
     base: {
       fontSize: "14px",

@@ -82,6 +82,7 @@ async function fetchAPI(endpoint, options = {}) {
 
 export async function getProducts(query = {}) {
   const params = new URLSearchParams();
+  params.set("status", query.status || "available");
   if (query.search) params.set("search", query.search);
   if (query.category) params.set("category", query.category);
   if (query.condition) params.set("condition", query.condition);

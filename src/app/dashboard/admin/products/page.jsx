@@ -59,6 +59,9 @@ import {
   Tag,
   DollarSign,
   AlignLeft,
+  Eye,
+  Store,
+  Mail,
 } from "lucide-react";
 import { SpecializedPagination } from "@/components/All/dashboard/shared/SpecializedPagination";
 
@@ -82,7 +85,21 @@ const CATEGORIES = [
 ];
 const EDIT_CATEGORIES = CATEGORIES.filter((c) => c !== "All");
 const CONDITIONS = ["Used", "Like New", "Refurbished"];
-const STATUSES = ["All", "available", "sold", "removed"];
+const STATUSES = ["All", "pending", "available", "sold", "rejected"];
+
+function DetailRow({ icon: Icon, label, value }) {
+  return (
+    <div className="flex items-start gap-3 py-2.5 border-b border-border/40 last:border-0">
+      <div className="mt-0.5 p-1.5 rounded-lg bg-muted shrink-0">
+        <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-0.5">{label}</p>
+        <p className="text-sm font-medium text-foreground break-all">{value || "—"}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -104,6 +121,10 @@ export default function AdminProductsPage() {
     description: "",
   });
   const [editState, setEditState] = useState("idle");
+
+  // View dialog state
+  const [viewTargetId, setViewTargetId] = useState(null);
+  const viewTarget = products.find((p) => p._id === viewTargetId) || null;
 
   useEffect(() => {
     let cancelled = false;
@@ -133,6 +154,7 @@ export default function AdminProductsPage() {
     });
     setEditTarget(product);
     setEditState("idle");
+    setViewTargetId(null);
   };
 
   const handleEditSave = async (e) => {
@@ -165,7 +187,7 @@ export default function AdminProductsPage() {
     setBusy(productId);
     const res = await updateProductStatus(productId, newStatus);
     if (res.success) {
-      toast.success(newStatus === "available" ? "Product approved" : "Product taken down");
+      toast.success(newStatus === "available" ? "Product approved" : "Product rejected");
       setProducts((prev) =>
         prev.map((p) => (p._id === productId ? { ...p, status: newStatus } : p))
       );
@@ -181,6 +203,7 @@ export default function AdminProductsPage() {
     if (res.success) {
       toast.success("Product deleted");
       setProducts((prev) => prev.filter((p) => p._id !== productId));
+      setViewTargetId((prev) => (prev === productId ? null : prev));
     } else {
       toast.error(res.message || "Failed to delete product");
     }
@@ -308,78 +331,16 @@ export default function AdminProductsPage() {
                       <StatusBadge status={product.status} />
                     </TableCell>
                     <TableCell className="pr-5">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Edit */}
+                      <div className="flex items-center justify-end">
                         <Button
                           variant="outline"
                           size="sm"
                           className="text-xs gap-1"
-                          disabled={busy === product._id}
-                          onClick={() => openEdit(product)}
+                          onClick={() => setViewTargetId(product._id)}
                         >
-                          <Pencil className="h-3 w-3" />
-                          Edit
+                          <Eye className="h-3 w-3" />
+                          Action
                         </Button>
-
-                        {/* Approve */}
-                        {product.status !== "available" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs gap-1 text-green-600 border-green-500/30 hover:bg-green-500/10"
-                            disabled={busy === product._id}
-                            onClick={() => handleStatusChange(product._id, "available")}
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                            Approve
-                          </Button>
-                        )}
-
-                        {/* Take Down */}
-                        {product.status !== "removed" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs gap-1 text-yellow-600 border-yellow-500/30 hover:bg-yellow-500/10"
-                            disabled={busy === product._id}
-                            onClick={() => handleStatusChange(product._id, "removed")}
-                          >
-                            <ShieldOff className="h-3 w-3" />
-                            Take Down
-                          </Button>
-                        )}
-
-                        {/* Delete */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs gap-1 text-red-500 border-red-500/30 hover:bg-red-500/10"
-                              disabled={busy === product._id}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete this product?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                &ldquo;{product.title}&rdquo; will be permanently removed. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(product._id)}
-                                className="bg-red-500 hover:bg-red-600 text-white"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
                       </div>
                     </TableCell>
                   </motion.tr>
@@ -396,6 +357,111 @@ export default function AdminProductsPage() {
           onPageChange={setPage}
         />
       </div>
+
+      {/* View product dialog */}
+      <Dialog open={!!viewTarget} onOpenChange={(open) => { if (!open) setViewTargetId(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Package className="h-4 w-4" />
+              Product Details
+            </DialogTitle>
+          </DialogHeader>
+          {viewTarget && (
+            <>
+              <div className="space-y-0.5">
+                <DetailRow icon={Tag} label="Title" value={viewTarget.title} />
+                <DetailRow icon={DollarSign} label="Price" value={viewTarget.price != null ? `৳${viewTarget.price.toLocaleString()}` : ""} />
+                <DetailRow icon={Package} label="Category" value={viewTarget.category} />
+                <DetailRow icon={AlignLeft} label="Description" value={viewTarget.description} />
+                <DetailRow icon={Store} label="Seller Name" value={viewTarget.sellerInfo?.name || viewTarget.sellerName} />
+                <DetailRow icon={Mail} label="Seller Email" value={viewTarget.sellerInfo?.email || viewTarget.sellerEmail} />
+                <div className="flex items-center gap-3 py-2.5">
+                  <div className="mt-0.5 p-1.5 rounded-lg bg-muted shrink-0">
+                    <CheckCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Status</p>
+                    <StatusBadge status={viewTarget.status} />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1"
+                  disabled={busy === viewTarget._id}
+                  onClick={() => openEdit(viewTarget)}
+                >
+                  <Pencil className="h-3 w-3" />
+                  Edit
+                </Button>
+
+                {viewTarget.status !== "available" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs gap-1 text-green-600 border-green-500/30 hover:bg-green-500/10"
+                    disabled={busy === viewTarget._id}
+                    onClick={() => handleStatusChange(viewTarget._id, "available")}
+                  >
+                    <CheckCircle className="h-3 w-3" />
+                    Approve
+                  </Button>
+                )}
+
+                {viewTarget.status !== "rejected" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs gap-1 text-yellow-600 border-yellow-500/30 hover:bg-yellow-500/10"
+                    disabled={busy === viewTarget._id}
+                    onClick={() => handleStatusChange(viewTarget._id, "rejected")}
+                  >
+                    <ShieldOff className="h-3 w-3" />
+                    Reject
+                  </Button>
+                )}
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs gap-1 text-red-500 border-red-500/30 hover:bg-red-500/10"
+                      disabled={busy === viewTarget._id}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this product?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        &ldquo;{viewTarget.title}&rdquo; will be permanently removed. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(viewTarget._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit product dialog */}
       <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>

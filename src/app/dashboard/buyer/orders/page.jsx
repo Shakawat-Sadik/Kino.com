@@ -24,6 +24,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,11 +39,111 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ShoppingCart, Search, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  ShoppingCart,
+  Search,
+  X,
+  Eye,
+  ShoppingBag,
+  Receipt,
+  User,
+  Store,
+  CreditCard,
+  Clock,
+  Hash,
+  Package,
+} from "lucide-react";
 import { SpecializedPagination } from "@/components/All/dashboard/shared/SpecializedPagination";
 
 const ORDER_STATUSES = ["All", "pending", "accepted", "processing", "shipped", "delivered", "cancelled"];
 const PAGE_LIMIT = 10;
+
+function DetailRow({ icon: Icon, label, value, mono }) {
+  return (
+    <div className="flex items-start gap-3 py-2.5 border-b border-border/40 last:border-0">
+      <div className="mt-0.5 p-1.5 rounded-lg bg-muted shrink-0">
+        <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-0.5">{label}</p>
+        <p className={`text-sm font-medium text-foreground break-all ${mono ? "font-mono text-xs" : ""}`}>
+          {value || "—"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function OrderDetailModal({ order, onClose }) {
+  const paymentDate = order.createdAt
+    ? new Date(order.createdAt).toLocaleDateString("en-BD", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ShoppingBag className="h-4 w-4" />
+            Order Details
+          </DialogTitle>
+          <p className="text-xs text-muted-foreground font-mono">
+            #{order._id?.slice(-8).toUpperCase()}
+          </p>
+        </DialogHeader>
+
+        <div className="flex gap-2 mt-1">
+          <Badge variant="outline" className="text-xs capitalize">
+            Payment: {order.paymentStatus}
+          </Badge>
+          <Badge variant="outline" className="text-xs capitalize">
+            Order: {order.orderStatus}
+          </Badge>
+        </div>
+
+        {/* Product */}
+        <div className="mt-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Product Information</p>
+          <DetailRow icon={ShoppingBag} label="Product Name" value={order.productTitle} />
+          <DetailRow icon={CreditCard} label="Amount Paid" value={order.totalAmount ? `৳${Number(order.totalAmount).toLocaleString()}` : "—"} />
+          <DetailRow icon={Hash} label="Product ID" value={order.productId} mono />
+        </div>
+
+        {/* Payment */}
+        <div className="mt-2 rounded-xl bg-muted/40 px-4 py-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-3 mb-1">Payment Details</p>
+          <DetailRow icon={Receipt} label="Transaction ID" value={order.transactionId} mono />
+          <DetailRow icon={Clock} label="Payment Date" value={paymentDate} />
+          <DetailRow icon={Package} label="Payment Status" value={order.paymentStatus?.toUpperCase()} />
+        </div>
+
+        {/* Buyer */}
+        <div className="mt-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Buyer Information</p>
+          <DetailRow icon={User} label="Buyer Name" value={order.buyerInfo?.name} />
+          <DetailRow icon={Receipt} label="Email" value={order.buyerInfo?.email} mono />
+        </div>
+
+        {/* Seller */}
+        <div className="mt-2 rounded-xl bg-muted/40 px-4 py-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-3 mb-1">Seller Information</p>
+          <DetailRow icon={Store} label="Seller Name" value={order.sellerInfo?.name} />
+          <DetailRow icon={Receipt} label="Seller Email" value={order.sellerInfo?.email} mono />
+          {order.sellerInfo?.phone && (
+            <DetailRow icon={CreditCard} label="Phone" value={order.sellerInfo.phone} />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function BuyerOrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -47,6 +153,7 @@ export default function BuyerOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -78,24 +185,27 @@ export default function BuyerOrdersPage() {
     setCancelling(null);
   };
 
-  // Client-side search filter on top of server-side status filter
   const filtered = orders.filter((o) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
-      o.productId?.toLowerCase().includes(q) ||
+      o.productTitle?.toLowerCase().includes(q) ||
       o.sellerInfo?.name?.toLowerCase().includes(q)
     );
   });
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
+      {selectedOrder && (
+        <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+      )}
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by product name..."
+            placeholder="Search by product name or seller..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-card"
@@ -143,12 +253,12 @@ export default function BuyerOrdersPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="text-xs font-semibold text-muted-foreground pl-5">Product ID</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground pl-5">Product</TableHead>
                 <TableHead className="text-xs font-semibold text-muted-foreground">Seller</TableHead>
                 <TableHead className="text-xs font-semibold text-muted-foreground">Date</TableHead>
                 <TableHead className="text-xs font-semibold text-muted-foreground">Order Status</TableHead>
                 <TableHead className="text-xs font-semibold text-muted-foreground">Payment</TableHead>
-                <TableHead className="text-xs font-semibold text-muted-foreground pr-5">Action</TableHead>
+                <TableHead className="text-xs font-semibold text-muted-foreground pr-5">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -163,9 +273,9 @@ export default function BuyerOrdersPage() {
                     className="border-border"
                   >
                     <TableCell className="pl-5 py-4">
-                      <code className="text-xs font-mono text-muted-foreground truncate max-w-40 block">
-                        {order.productId || "—"}
-                      </code>
+                      <p className="text-sm font-medium text-foreground truncate max-w-40">
+                        {order.productTitle || order.productId || "—"}
+                      </p>
                     </TableCell>
                     <TableCell>
                       <p className="text-sm text-muted-foreground truncate max-w-30">
@@ -186,39 +296,50 @@ export default function BuyerOrdersPage() {
                       <StatusBadge status={order.paymentStatus} />
                     </TableCell>
                     <TableCell className="pr-5">
-                      {order.orderStatus === "pending" ? (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs text-red-500 border-red-500/30 hover:bg-red-500/10"
-                              disabled={cancelling === order._id}
-                            >
-                              {cancelling === order._id ? "Cancelling..." : "Cancel"}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Cancel this order?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. The order will be marked as cancelled.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Keep Order</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleCancel(order._id)}
-                                className="bg-red-500 hover:bg-red-600 text-white"
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs gap-1"
+                          onClick={() => setSelectedOrder(order)}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View
+                        </Button>
+                        {order.orderStatus === "pending" ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs text-red-500 border-red-500/30 hover:bg-red-500/10"
+                                disabled={cancelling === order._id}
                               >
-                                Yes, Cancel
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
+                                {cancelling === order._id ? "Cancelling..." : "Cancel"}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Cancel this order?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. The order will be marked as cancelled.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Keep Order</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleCancel(order._id)}
+                                  className="bg-red-500 hover:bg-red-600 text-white"
+                                >
+                                  Yes, Cancel
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </div>
                     </TableCell>
                   </motion.tr>
                 ))}

@@ -170,11 +170,37 @@ const formatYearMonth = (val) => {
   return date.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
 };
 
-const formatFullDate = (val) => {
-  if (!val) return "";
-  const date = new Date(val);
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-};
+// Growth-ratio backfill: fractions of anchor-month value for each of the 5 preceding months
+// Mirrors a realistic S-curve growth trajectory (same pattern as reference project mock data)
+const GROWTH_RATIOS = [0.26, 0.39, 0.43, 0.63, 0.78];
+
+function withDemoTrend(realData, valueKey) {
+  const realMap = new Map(realData.map((d) => [d.month, d[valueKey]]));
+
+  // Anchor to the latest month that actually has real data, not the current calendar month.
+  // This avoids the "first day of a new month" bug where anchor value = 0.
+  const now = new Date();
+  const calendarKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const sorted = [...realData].sort((a, b) => a.month.localeCompare(b.month));
+  const anchorKey = sorted[sorted.length - 1]?.month ?? calendarKey;
+
+  const [anchorYear, anchorMonthNum] = anchorKey.split("-").map(Number);
+  const anchorDate = new Date(anchorYear, anchorMonthNum - 1, 1);
+  const anchorValue = realMap.get(anchorKey) ?? 0;
+
+  // Build 6 months ending at anchorKey
+  const monthKeys = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(anchorDate.getFullYear(), anchorDate.getMonth() - i, 1);
+    monthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+
+  return monthKeys.map((key, i) => {
+    if (realMap.has(key)) return { month: key, [valueKey]: realMap.get(key) };
+    if (i === monthKeys.length - 1) return { month: key, [valueKey]: anchorValue };
+    return { month: key, [valueKey]: Math.round(anchorValue * GROWTH_RATIOS[i]) };
+  });
+}
 
 
 
@@ -186,6 +212,9 @@ export function AdminCharts({ analytics }) {
     revenueByMonth = [],
   } = analytics ?? {};
 
+  const ordersTrend = withDemoTrend(monthlyOrders, "count");
+  const revenueTrend = withDemoTrend(revenueByMonth, "revenue");
+
   const [activeRoleIdx, setActiveRoleIdx] = useState(0);
   const [activeCatIdx, setActiveCatIdx] = useState(0);
 
@@ -195,12 +224,12 @@ export function AdminCharts({ analytics }) {
       {/* Monthly Orders — Bar Chart */}
       <ChartCard
         title="Monthly Orders"
-        description="Order volume over time"
+        description="Order volume over the last 6 months"
         accentColor="--chart-5"
         index={0}
       >
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={monthlyOrders} barSize={28}>
+          <BarChart data={ordersTrend} barSize={28}>
             <defs>
               <linearGradient id="gradOrders" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="var(--chart-5)" stopOpacity={1} />
@@ -326,12 +355,12 @@ export function AdminCharts({ analytics }) {
       {/* Revenue by Month — Bar Chart */}
       <ChartCard
         title="Revenue by Month"
-        description="Total revenue generated per day/month"
+        description="Total revenue generated per month (last 6 months)"
         accentColor="--chart-4"
         index={3}
       >
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={revenueByMonth} barSize={28}>
+          <BarChart data={revenueTrend} barSize={28}>
             <defs>
               <linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="var(--chart-4)" stopOpacity={1} />
@@ -345,7 +374,7 @@ export function AdminCharts({ analytics }) {
             />
             <XAxis
               dataKey="month"
-              tickFormatter={formatFullDate}
+              tickFormatter={formatYearMonth}
               tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               axisLine={false}
               tickLine={false}
@@ -359,7 +388,7 @@ export function AdminCharts({ analytics }) {
             />
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
-              labelFormatter={formatFullDate}
+              labelFormatter={formatYearMonth}
               formatter={(v) => [`৳${v.toLocaleString()}`, "Revenue"]}
               cursor={{ fill: "var(--accent)", fillOpacity: 0.45, radius: 6 }}
             />

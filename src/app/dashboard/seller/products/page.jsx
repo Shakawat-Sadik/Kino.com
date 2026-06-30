@@ -62,7 +62,7 @@ const CATEGORIES = [
   "Others",
 ];
 const CONDITIONS = ["Used", "Like New", "Refurbished"];
-const STATUSES = ["All", "available", "sold", "removed"];
+const STATUSES = ["All", "pending", "available", "sold", "rejected"];
 
 export default function SellerProductsPage() {
   const [products, setProducts] = useState([]);
