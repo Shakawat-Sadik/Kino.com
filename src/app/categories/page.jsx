@@ -43,9 +43,9 @@ function CategoryGrid() {
             className={`group relative flex items-start gap-5 rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:shadow-xl hover:shadow-black/5 ${border} overflow-hidden`}
           >
             {/* Background glow on hover */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${bg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+            <div className={`absolute inset-0 bg-linear-to-br ${bg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
 
-            <span className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${bg} border border-border/40 ${color} shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300`}>
+            <span className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br ${bg} border border-border/40 ${color} shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300`}>
               <Icon size={24} strokeWidth={1.5} />
             </span>
 
@@ -87,7 +87,7 @@ export default function CategoriesPage() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative overflow-hidden py-20 md:py-28">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/30 to-background" />
+        <div className="absolute inset-0 bg-linear-to-br from-background via-muted/30 to-background" />
         <div className="absolute -top-20 right-1/4 h-80 w-80 rounded-full bg-chart-3/10 blur-[80px]" />
         <div className="absolute -bottom-20 left-1/3 h-60 w-60 rounded-full bg-chart-1/10 blur-[60px]" />
 
