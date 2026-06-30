@@ -161,7 +161,7 @@ export default function SellerOrdersPage() {
                       </TableCell>
                       <TableCell>
                         <span className="text-sm font-semibold">
-                          ৳{order.amount?.toLocaleString() ?? "—"}
+                          ৳{order.totalAmount?.toLocaleString() ?? "—"}
                         </span>
                       </TableCell>
                       <TableCell>

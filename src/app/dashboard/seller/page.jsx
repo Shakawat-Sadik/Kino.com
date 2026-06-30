@@ -31,7 +31,7 @@ async function SellerStats() {
     },
     {
       title: "Total Sales",
-      value: stats.totalSales ?? 0,
+      value: stats.totalOrders ?? 0,
       icon: <TrendingUp className="h-5 w-5 text-green-500" />,
       color: { bg: "bg-green-500/10" },
     },
@@ -107,7 +107,7 @@ async function PendingOrdersPreview() {
                 </TableCell>
                 <TableCell>
                   <span className="text-sm font-semibold">
-                    ৳{order.amount?.toLocaleString() ?? "—"}
+                    ৳{order.totalAmount?.toLocaleString() ?? "—"}
                   </span>
                 </TableCell>
                 <TableCell>
