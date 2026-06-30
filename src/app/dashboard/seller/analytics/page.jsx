@@ -13,19 +13,19 @@ import {
 import { BarChart3 } from "lucide-react";
 
 const CHART_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ];
 
 const TOOLTIP_STYLE = {
-  background: "hsl(var(--popover))",
-  border: "1px solid hsl(var(--border))",
+  background: "var(--popover)",
+  border: "1px solid var(--border)",
   borderRadius: "12px",
   fontSize: 12,
-  color: "hsl(var(--foreground))",
+  color: "var(--foreground)",
 };
 
 function ChartCard({ title, description, children }) {
@@ -114,17 +114,17 @@ export default function SellerAnalyticsPage() {
         >
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={monthlySales} barSize={28}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                 axisLine={false} tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                 axisLine={false} tickLine={false} width={28}
               />
-              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "hsl(var(--accent))" }} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "var(--accent)" }} />
               <Bar dataKey="count" fill={CHART_COLORS[0]} radius={[6, 6, 0, 0]} name="Sales" />
             </BarChart>
           </ResponsiveContainer>
@@ -137,16 +137,16 @@ export default function SellerAnalyticsPage() {
         >
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={topProducts} layout="vertical" barSize={18}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
               <XAxis
                 type="number"
-                tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                 axisLine={false} tickLine={false}
               />
               <YAxis
                 type="category"
                 dataKey="title"
-                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
                 axisLine={false} tickLine={false} width={100}
               />
               <Tooltip contentStyle={TOOLTIP_STYLE} />
