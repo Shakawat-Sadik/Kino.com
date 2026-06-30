@@ -110,11 +110,11 @@ export default function Navbar() {
       href: "/categories",
       title: "Categories",
       submenu: [
-        { href: "/products?category=electronics", title: "Electronics" },
-        { href: "/products?category=furniture", title: "Furniture" },
-        { href: "/products?category=vehicles", title: "Vehicles" },
-        { href: "/products?category=fashion", title: "Fashion" },
-        { href: "/products?category=mobile-phones", title: "Mobile Phones" },
+        { href: "/products?category=Electronics", title: "Electronics" },
+        { href: "/products?category=Furniture", title: "Furniture" },
+        { href: "/products?category=Vehicles", title: "Vehicles" },
+        { href: "/products?category=Fashion", title: "Fashion" },
+        { href: "/products?category=Mobile Phones", title: "Mobile Phones" },
       ],
     },
   ];
