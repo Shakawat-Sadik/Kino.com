@@ -11,6 +11,8 @@ import {
   getAllReviews,
   getTopSellers,
 } from "@/lib/action/action";
+import CTABanner from "@/components/All/Home/CTA";
+import HowItWorksSection from "@/components/All/Home/HowItWorks";
 
 export default async function Home() {
   const [productsData, statsData, reviewsData, sellersData] = await Promise.all([
@@ -30,6 +32,8 @@ export default async function Home() {
       <HeroSection stats={stats} />
       <FeaturedProducts products={products} />
       <CategoriesSection />
+      <HowItWorksSection />
+      <CTABanner />
       <SuccessStories reviews={reviews} />
       <StatsSection stats={stats} />
       <SustainabilitySection />
