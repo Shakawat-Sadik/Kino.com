@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button";
 import { ActionSwapText } from "@/components/motion/action-swap";
 import { ScrollTo } from "@/components/motion/scroll-to";
 import { EASE_OUT } from "@/lib/ease";
-import { ArrowRight, ShoppingBag, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  ShoppingBag,
+  TrendingUp,
+  PlusCircle,
+  LayoutDashboard,
+  ShieldCheck,
+  Users,
+  Package,
+} from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 const CATEGORIES = ["Electronics", "Furniture", "Vehicles", "Fashion", "Books"];
 
@@ -23,6 +33,8 @@ const fadeUp = (delay = 0) => ({
 export default function HeroSection({ stats }) {
   const reduce = useReducedMotion();
   const [catIdx, setCatIdx] = useState(0);
+  const { data: session } = authClient.useSession();
+  const role = session?.user?.role;
 
   useEffect(() => {
     const t = setInterval(() => setCatIdx((i) => (i + 1) % CATEGORIES.length), 2500);
@@ -50,13 +62,20 @@ export default function HeroSection({ stats }) {
         {/* Headline */}
         <motion.h1
           {...(reduce ? {} : fadeUp(0.1))}
-          className="text-4xl font-black leading-tight tracking-tight text-foreground md:text-6xl lg:text-7xl"
+          className="text-3xl font-black leading-tight tracking-tight text-foreground sm:text-4xl md:text-6xl lg:text-7xl"
         >
-          Buy &amp; Sell{" "}
-          <span className="text-chart-3">
-            <ActionSwapText value={catIdx} animation="roll">
-              {CATEGORIES[catIdx]}
-            </ActionSwapText>
+          <span className="whitespace-nowrap">
+            Buy &amp; Sell{" "}
+            <span className="text-chart-3">
+              <Link
+                href={`/products?category=${encodeURIComponent(CATEGORIES[catIdx])}`}
+                className="hover:underline decoration-chart-3 underline-offset-4"
+              >
+                <ActionSwapText value={catIdx} animation="roll">
+                  {CATEGORIES[catIdx]}
+                </ActionSwapText>
+              </Link>
+            </span>
           </span>
           <br />
           <span className="text-foreground/70">with Confidence</span>
@@ -70,24 +89,81 @@ export default function HeroSection({ stats }) {
           affordable, and sustainable commerce.
         </motion.p>
 
-        {/* CTAs */}
+        {/* CTAs — role-aware */}
         <motion.div
           {...(reduce ? {} : fadeUp(0.24))}
           className="mt-8 flex flex-wrap items-center justify-center gap-3"
         >
-          <ScrollTo
-            to="#featured"
-            offset={-80}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-colors hover:bg-foreground/80"
-          >
-            <ShoppingBag size={15} />
-            Browse Products
-          </ScrollTo>
-          <Button asChild variant="outline" className="h-11 rounded-full px-6">
-            <Link href="/dashboard/seller/products">
-              Start Selling <ArrowRight size={14} className="ml-1" />
-            </Link>
-          </Button>
+          {role === "seller" ? (
+            <>
+              <Button
+                asChild
+                className="h-11 rounded-full px-6 gap-2 bg-foreground text-background hover:bg-foreground/80"
+              >
+                <Link href="/dashboard/seller/products/new">
+                  <PlusCircle size={15} />
+                  Start Selling
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-11 rounded-full px-6">
+                <Link href="/dashboard/seller">
+                  <LayoutDashboard size={14} className="mr-1" />
+                  My Dashboard <ArrowRight size={14} className="ml-1" />
+                </Link>
+              </Button>
+            </>
+          ) : role === "admin" ? (
+            <>
+              <Button
+                asChild
+                className="h-11 rounded-full px-6 gap-2 bg-foreground text-background hover:bg-foreground/80"
+              >
+                <Link href="/dashboard/admin">
+                  <ShieldCheck size={15} />
+                  Manage Tasks
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-11 rounded-full px-6">
+                <Link href="/dashboard/admin/users">
+                  <Users size={14} className="mr-1" />
+                  Manage Users <ArrowRight size={14} className="ml-1" />
+                </Link>
+              </Button>
+            </>
+          ) : role === "buyer" ? (
+            <>
+              <ScrollTo
+                to="#featured"
+                offset={-80}
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-colors hover:bg-foreground/80"
+              >
+                <ShoppingBag size={15} />
+                Browse Products
+              </ScrollTo>
+              <Button asChild variant="outline" className="h-11 rounded-full px-6">
+                <Link href="/dashboard/buyer/orders">
+                  <Package size={14} className="mr-1" />
+                  My Orders <ArrowRight size={14} className="ml-1" />
+                </Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <ScrollTo
+                to="#featured"
+                offset={-80}
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-colors hover:bg-foreground/80"
+              >
+                <ShoppingBag size={15} />
+                Browse Products
+              </ScrollTo>
+              <Button asChild variant="outline" className="h-11 rounded-full px-6">
+                <Link href="/auth/sign-up">
+                  Start Selling <ArrowRight size={14} className="ml-1" />
+                </Link>
+              </Button>
+            </>
+          )}
         </motion.div>
 
         {/* Stat pills */}
