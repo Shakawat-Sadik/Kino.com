@@ -24,6 +24,16 @@ const nextConfig = {
         pathname: "**",
       },
       {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "ibb.co.com",
+        pathname: "**",
+      },
+      {
         // Allow any https host — covers sample/user-supplied image URLs
         protocol: "https",
         hostname: "**",
