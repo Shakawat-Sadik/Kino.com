@@ -28,24 +28,14 @@ export default async function AdminDashboardPage() {
   }
 
   // Fetch analytics, users, and orders at page level — passed as props to client components
-  const [analyticsRes, usersRes, ordersRes, paymentsRes] = await Promise.all([
+  const [analyticsRes, usersRes, ordersRes] = await Promise.all([
     getAdminAnalytics(),
     getAdminUsers({ limit: 5 }),
     getAdminOrders({ limit: 5 }),
-    // getAdminPayments({ limit: 5 }),
   ]);
-  console.log("AdminDashboardPage analyticsRes:", analyticsRes); // Debugging: Log the analytics response
-
   const analytics = analyticsRes.success ? analyticsRes.result : null;
   const users = usersRes.success ? usersRes.result : [];
   const orders = ordersRes.success ? ordersRes.result : [];
-  // const payments = paymentsRes.success ? paymentsRes.result : [];
-
-  console.log("AdminDashboardPage fetch results:", {
-    analyticsRes,
-    usersRes,
-    ordersRes,
-  }); // Debugging: Log the fetch results
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -63,7 +53,6 @@ export default async function AdminDashboardPage() {
       {/* ── Recent activity tables ── */}
       <Suspense fallback={<AdminRecentActivitySkeleton />}>
         <AdminRecentActivity users={users} orders={orders} />
-        {/* <AdminRecentActivity users={users} orders={orders} payments={payments} /> */}
       </Suspense>
 
       {/* ── Quick action links ── */}
