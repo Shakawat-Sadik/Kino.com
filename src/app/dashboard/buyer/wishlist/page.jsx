@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { getWishlist, removeFromWishlist } from "@/lib/action/action";
+import { getWishlist, removeFromWishlist, getMyOrders } from "@/lib/action/action";
 import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
@@ -17,8 +17,26 @@ export default function BuyerWishlistPage() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await getWishlist();
-      setItems(res.success ? res.result : []);
+      const [wishRes, orderRes] = await Promise.all([
+        getWishlist(),
+        getMyOrders({ limit: 200 }),
+      ]);
+
+      const allItems = wishRes.success ? wishRes.result : [];
+      const orders = orderRes.success ? orderRes.result : [];
+
+      // Build set of productIds the buyer has already received
+      const deliveredIds = new Set(
+        orders
+          .filter((o) => o.orderStatus === "delivered")
+          .map((o) => o.productId)
+      );
+
+      // Silently remove delivered products from wishlist in the background
+      const toRemove = allItems.filter((p) => deliveredIds.has(p._id));
+      toRemove.forEach((p) => removeFromWishlist(p._id));
+
+      setItems(allItems.filter((p) => !deliveredIds.has(p._id)));
       setLoading(false);
     };
     load();
