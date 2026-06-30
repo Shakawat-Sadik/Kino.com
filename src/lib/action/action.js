@@ -19,7 +19,6 @@ const protectedEndpoints = [
   "/profile",
   "/checkout",
   "/payments",
-  "/reviews",
   "/seller",
   "/buyer",
 ];
@@ -303,10 +302,23 @@ export async function getProductReviews(productId) {
 }
 
 export async function addReview({ productId, rating, comment }) {
-  return await fetchAPI("/reviews", {
-    method: "POST",
-    body: JSON.stringify({ productId, rating, comment }),
-  });
+  try {
+    const token = await getAuthHeaders();
+    if (!token) return { success: false, message: "Not authenticated", result: null };
+    const res = await fetch(`${API_URL}/reviews`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify({ productId, rating, comment }),
+      cache: "no-store",
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, message: data.message || "Request failed", result: null };
+    }
+    return data;
+  } catch (error) {
+    return { success: false, message: error.message || "Network error", result: null };
+  }
 }
 // ─────────────────────────────────────────────────────────────
 // BUYER — STATS
