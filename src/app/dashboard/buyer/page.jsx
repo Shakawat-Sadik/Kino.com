@@ -37,7 +37,7 @@ async function BuyerStats() {
     },
     {
       title: "Recent Purchases",
-      value: stats.recentPurchases ?? 0,
+      value: stats.recentPurchases?.length ?? 0,
       icon: <Package className="h-5 w-5 text-primary" />,
       color: { bg: "bg-primary/10" },
     },
@@ -103,7 +103,7 @@ async function RecentOrders() {
                 </TableCell>
                 <TableCell>
                   <span className="text-sm font-semibold">
-                    ৳{order.amount?.toLocaleString() ?? "—"}
+                    ৳{order.totalAmount?.toLocaleString() ?? "—"}
                   </span>
                 </TableCell>
                 <TableCell>
