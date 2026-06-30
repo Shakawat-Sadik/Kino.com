@@ -57,6 +57,15 @@ export default function ProductsClient() {
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "all");
   const [condition, setCondition] = useState("all");
+
+  // Sync state when the URL changes externally (e.g. navbar category links)
+  useEffect(() => {
+    const urlCategory = searchParams.get("category") || "all";
+    const urlSearch = searchParams.get("search") || "";
+    setCategory(urlCategory);
+    setSearch(urlSearch);
+    setPage(1);
+  }, [searchParams]);
   const [sort, setSort] = useState("newest");
   const [hoveredId, setHoveredId] = useState(null);
   const [page, setPage] = useState(1);
