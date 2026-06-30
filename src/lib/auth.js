@@ -53,6 +53,11 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      mapProfileToUser: () => ({
+        role: "buyer",
+        contact: "+880",
+        location: { country: "Bangladesh" },
+      }),
     },
   },
 
@@ -65,10 +70,9 @@ export const auth = betterAuth({
     user: {
       update: {
         before: async (data) => {
-          // Prevent OAuth re-logins from overwriting an existing role.
-          // New users still receive defaultValue "buyer" via the create path.
-          // Role changes are handled by the Express PATCH /profile endpoint.
-          const { role, ...safeData } = data;
+          // Prevent OAuth re-logins from overwriting fields seeded by mapProfileToUser.
+          // These fields are managed by the Express PATCH /profile endpoint instead.
+          const { role, contact, location, ...safeData } = data;
           return { data: safeData };
         },
       },
