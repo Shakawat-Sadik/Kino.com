@@ -65,12 +65,17 @@ export default function CheckoutForm({ product }) {
     });
     if (!confirmRes.success) return fail(confirmRes.message);
 
-    // 4. Success — redirect to payment history
+    // 4. Success — redirect to payment history with full details for success card
     setPayState("success");
+    const params = new URLSearchParams({
+      success: "true",
+      orderId: confirmRes.result.orderId ?? "",
+      transactionId: paymentIntent.id ?? "",
+      amount: String(product.price),
+      productTitle: product.title,
+    });
     setTimeout(() => {
-      router.push(
-        `/dashboard/buyer/payments?success=true&orderId=${confirmRes.result.orderId}`
-      );
+      router.push(`/dashboard/buyer/payments?${params.toString()}`);
     }, 1200);
   };
 

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { getMyPayments } from "@/lib/action/action";
 import { StatusBadge } from "@/components/All/dashboard/shared/StatusBadge";
+import { CheckCircle2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -19,13 +21,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard } from "lucide-react";
+import { CreditCard, ShoppingBag, ListOrdered, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { SpecializedPagination } from "@/components/All/dashboard/shared/SpecializedPagination";
 
 const PAYMENT_STATUSES = ["All", "success", "pending", "failed", "refunded"];
 const PAGE_LIMIT = 10;
 
 export default function BuyerPaymentsPage() {
+  const searchParams = useSearchParams();
+  const paymentSuccess = searchParams.get("success") === "true";
+  const successOrderId = searchParams.get("orderId");
+  const successTransactionId = searchParams.get("transactionId");
+  const successAmount = searchParams.get("amount");
+  const successProductTitle = searchParams.get("productTitle");
+  const successDate = paymentSuccess ? new Date().toLocaleDateString("en-BD", { day: "numeric", month: "short", year: "numeric" }) : null;
+
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("All");
@@ -56,6 +67,88 @@ export default function BuyerPaymentsPage() {
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
+      {/* Payment success card */}
+      {paymentSuccess && (
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="rounded-2xl border border-green-500/30 bg-green-500/10 overflow-hidden"
+        >
+          {/* Header */}
+          <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-green-500/20">
+            <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-green-700 dark:text-green-400">Payment Successful!</p>
+              <p className="text-xs text-green-600 dark:text-green-500 mt-0.5">
+                Your order has been placed. The seller will confirm shortly.
+              </p>
+            </div>
+          </div>
+
+          {/* Order summary */}
+          <div className="px-5 py-4 space-y-2.5">
+            {successProductTitle && (
+              <div className="flex justify-between items-start text-xs">
+                <span className="text-muted-foreground">Product</span>
+                <span className="font-semibold text-foreground text-right max-w-[60%] truncate">
+                  {decodeURIComponent(successProductTitle)}
+                </span>
+              </div>
+            )}
+            {successAmount && (
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Amount Paid</span>
+                <span className="font-bold text-foreground text-base">
+                  ৳{Number(successAmount).toLocaleString()}
+                </span>
+              </div>
+            )}
+            {successTransactionId && (
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Transaction ID</span>
+                <code className="font-mono bg-green-500/10 px-1.5 py-0.5 rounded text-green-700 dark:text-green-400 text-[11px]">
+                  {successTransactionId}
+                </code>
+              </div>
+            )}
+            {successOrderId && (
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Order ID</span>
+                <code className="font-mono text-muted-foreground text-[11px]">{successOrderId}</code>
+              </div>
+            )}
+            {successDate && (
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">Payment Date</span>
+                <span className="text-foreground">{successDate}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-2 px-5 pb-5">
+            <Link
+              href="/dashboard/buyer/orders"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors"
+            >
+              <ListOrdered className="h-3.5 w-3.5" />
+              View My Orders
+            </Link>
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border border-green-500/30 text-green-700 dark:text-green-400 hover:bg-green-500/10 transition-colors"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Continue Shopping
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </motion.div>
+      )}
+
       {/* Filter */}
       <div className="flex justify-end">
         <Select value={statusFilter} onValueChange={(val) => { setPage(1); setStatusFilter(val); }}>
