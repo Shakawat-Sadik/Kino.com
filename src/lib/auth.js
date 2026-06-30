@@ -61,6 +61,20 @@ export const auth = betterAuth({
     client,
   }),
 
+  databaseHooks: {
+    user: {
+      update: {
+        before: async (data) => {
+          // Prevent OAuth re-logins from overwriting an existing role.
+          // New users still receive defaultValue "buyer" via the create path.
+          // Role changes are handled by the Express PATCH /profile endpoint.
+          const { role, ...safeData } = data;
+          return { data: safeData };
+        },
+      },
+    },
+  },
+
   session: {
     cookieCache: {
       enabled: true,
