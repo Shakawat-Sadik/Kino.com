@@ -44,6 +44,7 @@ const NAV_LINKS = {
     { href: "/dashboard/admin/users", label: "Manage Users", icon: Users },
     { href: "/dashboard/admin/products", label: "Manage Products", icon: Package },
     { href: "/dashboard/admin/orders", label: "Manage Orders", icon: ShoppingCart },
+    { href: "/dashboard/admin/payments", label: "Payments", icon: CreditCard },
     { href: "/dashboard/admin/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/dashboard/admin/profile", label: "Profile", icon: User },
   ],
