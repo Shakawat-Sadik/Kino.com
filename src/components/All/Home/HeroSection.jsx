@@ -20,7 +20,21 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
-const CATEGORIES = ["Electronics", "Furniture", "Vehicles", "Fashion", "Books"];
+const CATEGORIES = [
+  "Electronics",
+  "Mobile Phones",
+  "Furniture",
+  "Vehicles",
+  "Fashion",
+  "Books",
+  "Sports & Fitness",
+  "Gaming",
+  "Cameras",
+  "Education",
+  "Jobs & Services",
+  "Music",
+  "Others",
+];
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 32, filter: "blur(6px)" },

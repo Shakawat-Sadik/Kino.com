@@ -19,7 +19,21 @@ import {
 import { ImagePlus, X, ArrowLeft, Package } from "lucide-react";
 
 
-const CATEGORIES = ["Electronics", "Fashion", "Furniture", "Vehicles", "Mobile Phones", "Other"];
+const CATEGORIES = [
+  "Electronics",
+  "Mobile Phones",
+  "Furniture",
+  "Vehicles",
+  "Fashion",
+  "Books",
+  "Sports & Fitness",
+  "Gaming",
+  "Cameras",
+  "Education",
+  "Jobs & Services",
+  "Music",
+  "Others",
+];
 const CONDITIONS = ["Used", "Like New", "Refurbished"];
 
 export default function AddProductPage() {

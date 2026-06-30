@@ -67,13 +67,18 @@ const PAGE_LIMIT = 10;
 const CATEGORIES = [
   "All",
   "Electronics",
+  "Mobile Phones",
   "Furniture",
   "Vehicles",
   "Fashion",
-  "Mobile Phones",
   "Books",
-  "Sports",
-  "Other",
+  "Sports & Fitness",
+  "Gaming",
+  "Cameras",
+  "Education",
+  "Jobs & Services",
+  "Music",
+  "Others",
 ];
 const EDIT_CATEGORIES = CATEGORIES.filter((c) => c !== "All");
 const CONDITIONS = ["Used", "Like New", "Refurbished"];

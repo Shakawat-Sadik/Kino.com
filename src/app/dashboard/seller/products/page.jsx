@@ -46,7 +46,21 @@ import {
 } from "@/components/ui/select";
 import { Package, Plus, Pencil, Trash2, Search, X } from "lucide-react";
 
-const CATEGORIES = ["Electronics", "Fashion", "Furniture", "Vehicles", "Mobile Phones", "Other"];
+const CATEGORIES = [
+  "Electronics",
+  "Mobile Phones",
+  "Furniture",
+  "Vehicles",
+  "Fashion",
+  "Books",
+  "Sports & Fitness",
+  "Gaming",
+  "Cameras",
+  "Education",
+  "Jobs & Services",
+  "Music",
+  "Others",
+];
 const CONDITIONS = ["Used", "Like New", "Refurbished"];
 const STATUSES = ["All", "available", "sold", "removed"];
 

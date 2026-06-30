@@ -20,11 +20,18 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 
 const CATEGORIES = [
   "Electronics",
+  "Mobile Phones",
   "Furniture",
   "Vehicles",
   "Fashion",
-  "Mobile Phones",
   "Books",
+  "Sports & Fitness",
+  "Gaming",
+  "Cameras",
+  "Education",
+  "Jobs & Services",
+  "Music",
+  "Others",
 ];
 const CONDITIONS = ["Like New", "Good", "Used", "Refurbished"];
 const SORT_OPTIONS = [
@@ -57,18 +64,19 @@ export default function ProductsClient() {
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "all");
   const [condition, setCondition] = useState("all");
-
-  // Sync state when the URL changes externally (e.g. navbar category links)
-  useEffect(() => {
-    const urlCategory = searchParams.get("category") || "all";
-    const urlSearch = searchParams.get("search") || "";
-    setCategory(urlCategory);
-    setSearch(urlSearch);
-    setPage(1);
-  }, [searchParams]);
   const [sort, setSort] = useState("newest");
   const [hoveredId, setHoveredId] = useState(null);
   const [page, setPage] = useState(1);
+
+  // Sync state when the URL changes externally (e.g. navbar category links)
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setCategory(searchParams.get("category") || "all");
+      setSearch(searchParams.get("search") || "");
+      setPage(1);
+    }, 0);
+    return () => clearTimeout(id);
+  }, [searchParams]);
 
   const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
