@@ -33,11 +33,11 @@ export default async function Home() {
       <FeaturedProducts products={products} />
       <CategoriesSection />
       <HowItWorksSection />
-      <CTABanner />
       <SuccessStories reviews={reviews} />
       <StatsSection stats={stats} />
       <SustainabilitySection />
       <TrustedSellers sellers={sellers} />
+      <CTABanner />
     </div>
   );
 }
