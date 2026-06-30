@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
-import { getMyProfile, updateMyProfile, uploadImage } from "@/lib/action/action";
+import { getMyProfile, updateMyProfile, uploadImage, switchMyRole } from "@/lib/action/action";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { StatefulButton } from "@/components/motion/button/stateful";
 import { FileUpload } from "@/components/motion/file-upload";
-import { User, Phone, MapPin, Save, ShieldCheck, Lock } from "lucide-react";
+import { User, Phone, MapPin, Save, ShieldCheck, Lock, ArrowLeftRight, Store, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 
 // Phone is locked once 10 digits are present after stripping the +880 country code
@@ -24,6 +24,7 @@ export default function BuyerProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState("idle");
+  const [switchState, setSwitchState] = useState("idle");
   const [uploadItems, setUploadItems] = useState([]);
 
   const [form, setForm] = useState({
@@ -116,6 +117,20 @@ export default function BuyerProfilePage() {
       );
     }
   }, []);
+
+  const handleSwitchRole = async () => {
+    if (switchState === "loading") return;
+    setSwitchState("loading");
+    const res = await switchMyRole("seller");
+    if (res.success) {
+      setSwitchState("success");
+      toast.success("Role switched to Seller! Redirecting…");
+      setTimeout(() => { window.location.href = "/dashboard/seller"; }, 1200);
+    } else {
+      setSwitchState("idle");
+      toast.error(res.message || "Failed to switch role");
+    }
+  };
 
   const initial = (profile?.name || "U").slice(0, 2).toUpperCase();
   const role = session?.user?.role || profile?.role || "buyer";
@@ -299,8 +314,39 @@ export default function BuyerProfilePage() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground pt-1">
-          Email and role cannot be changed here. Contact support if needed.
+          Email cannot be changed here. Contact support if needed.
         </p>
+      </div>
+
+      {/* Switch Role */}
+      <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+        <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+          <ArrowLeftRight className="h-4 w-4 text-muted-foreground" /> Switch Role
+        </p>
+        <Separator />
+        <div className="flex items-start gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10">
+            <Store className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Become a Seller</p>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              Switch to a Seller account to list products and manage orders. You can always switch back.
+            </p>
+          </div>
+          <StatefulButton
+            type="button"
+            state={switchState}
+            onClick={handleSwitchRole}
+            icon={<ArrowLeftRight className="h-3.5 w-3.5" />}
+            loadingText="Switching…"
+            successText="Switched!"
+            errorText="Retry"
+            className="shrink-0"
+          >
+            Switch to Seller
+          </StatefulButton>
+        </div>
       </div>
     </motion.div>
   );

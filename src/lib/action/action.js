@@ -353,6 +353,16 @@ export async function updateMyProfile(updateData) {
   });
 }
 
+export async function switchMyRole(role) {
+  if (role !== "buyer" && role !== "seller") {
+    return { success: false, message: "Invalid role" };
+  }
+  return await fetchAPI("/profile", {
+    method: "PATCH",
+    body: JSON.stringify({ role }),
+  });
+}
+
 // ─────────────────────────────────────────────────────────────
 // ADMIN — STATS
 // Express routes:
