@@ -121,11 +121,7 @@ export async function getMyProducts(query = {}) {
 export async function createProduct(productData) {
   return await fetchAPI("/seller/products", {
     method: "POST",
-    body: JSON.stringify({
-      ...productData,
-      status: "available",
-      dateUploaded: new Date().toISOString(),
-    }),
+    body: JSON.stringify(productData),
   });
 }
 

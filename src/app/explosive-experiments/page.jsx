@@ -10,11 +10,9 @@ import { headers } from "next/headers";
 import React from "react";
 
 const ExplosiveExperimentsPage = async () => {
-  const userPromise = auth.api.getSession();
   const user = await auth.api.getSession({
     headers: await headers(),
   });
-  console.log(userPromise);
   console.log(user);
 
   let data = { result: [] };
