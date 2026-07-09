@@ -53,6 +53,9 @@ import {
   Clock,
   Hash,
   Package,
+  CheckCircle2,
+  Circle,
+  XCircle,
 } from "lucide-react";
 import { SpecializedPagination } from "@/components/All/dashboard/shared/SpecializedPagination";
 
@@ -71,6 +74,55 @@ function DetailRow({ icon: Icon, label, value, mono }) {
           {value || "—"}
         </p>
       </div>
+    </div>
+  );
+}
+
+const TRACK_STEPS = ["pending", "accepted", "processing", "shipped", "delivered"];
+
+function OrderTracker({ status }) {
+  const cancelled = status === "cancelled";
+  const currentIdx = TRACK_STEPS.indexOf(status);
+
+  if (cancelled) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3">
+        <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+        <p className="text-sm font-semibold text-red-500">Order Cancelled</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {TRACK_STEPS.map((step, i) => {
+        const done = i < currentIdx;
+        const active = i === currentIdx;
+        return (
+          <div key={step} className="flex items-center gap-3">
+            <div className="flex flex-col items-center">
+              {done ? (
+                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+              ) : active ? (
+                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+              ) : (
+                <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+              )}
+              {i < TRACK_STEPS.length - 1 && (
+                <div className={`w-px h-4 mt-0.5 ${done ? "bg-green-500/60" : "bg-border"}`} />
+              )}
+            </div>
+            <p className={`text-xs capitalize leading-none pb-4 ${
+              done ? "text-green-600 font-medium" :
+              active ? "text-primary font-semibold" :
+              "text-muted-foreground"
+            }`}>
+              {step}
+              {active && <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">(current)</span>}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -106,6 +158,14 @@ function OrderDetailModal({ order, onClose }) {
           <Badge variant="outline" className="text-xs capitalize">
             Order: {order.orderStatus}
           </Badge>
+        </div>
+
+        {/* Order Tracking */}
+        <div className="mt-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Order Tracking</p>
+          <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
+            <OrderTracker status={order.orderStatus} />
+          </div>
         </div>
 
         {/* Product */}
