@@ -1,9 +1,9 @@
-import { cache } from 'react';
+import { cache } from "react";
 import { notFound } from "next/navigation";
+import { getProductById } from "@/lib/action/action";
+import ProductDetail from "@/components/All/Products/ProductDetail";
 
 export const revalidate = 180;
-import { getProductById, getProductReviews } from "@/lib/action/action";
-import ProductDetail from "@/components/All/Products/ProductDetail";
 
 const getCachedProduct = cache(getProductById);
 
@@ -19,19 +19,13 @@ export async function generateMetadata({ params }) {
 export default async function ProductDetailPage({ params }) {
   const { id } = await params;
 
-  const [productData, reviewsData] = await Promise.all([
-    getCachedProduct(id),
-    getProductReviews(id),
-  ]);
-
+  const productData = await getCachedProduct(id);
   const product = productData?.result;
   if (!product) notFound();
 
-  const reviews = reviewsData?.result ?? [];
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:py-16">
-      <ProductDetail product={product} reviews={reviews} />
+      <ProductDetail product={product} />
     </div>
   );
 }

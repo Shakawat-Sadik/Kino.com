@@ -20,7 +20,7 @@ export default function ImageGallery({ images = [] }) {
     <div className="space-y-3">
       {/* Main image */}
       <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={active}
             initial={{ opacity: 0, scale: 1.04 }}

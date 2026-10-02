@@ -1,12 +1,11 @@
-"use client";
+import { Suspense } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
 import ImageGallery from "./ImageGallery";
 import WishlistButton from "./WishlistButton";
-import ReviewSection from "./ReviewSection";
+import ReviewsLoader from "./ReviewsLoader";
+import ReviewsSkeleton from "./ReviewsSkeleton";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/All/dashboard/shared/StatusBadge";
-import { EASE_OUT } from "@/lib/ease";
 import {
   ShoppingBag,
   Phone,
@@ -23,12 +22,7 @@ const CONDITION_COLOR = {
   Refurbished: "bg-chart-1/10 text-chart-1",
 };
 
-const fadeX = (dir, delay = 0) => ({
-  initial: { opacity: 0, x: dir === "left" ? -24 : 24 },
-  animate: { opacity: 1, x: 0, transition: { duration: 0.5, ease: EASE_OUT, delay } },
-});
-
-export default function ProductDetail({ product, reviews = [] }) {
+export default function ProductDetail({ product }) {
   const conditionClass =
     CONDITION_COLOR[product.condition] || "bg-muted text-muted-foreground";
 
@@ -58,12 +52,12 @@ export default function ProductDetail({ product, reviews = [] }) {
       {/* Main layout */}
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Image gallery */}
-        <motion.div {...fadeX("left")}>
+        <div>
           <ImageGallery images={product.images ?? []} />
-        </motion.div>
+        </div>
 
         {/* Product info */}
-        <motion.div {...fadeX("right", 0.08)} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5">
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2">
             {product.category && (
@@ -163,11 +157,13 @@ export default function ProductDetail({ product, reviews = [] }) {
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
 
-      {/* Reviews */}
-      <ReviewSection productId={product._id} initialReviews={reviews} />
+      {/* Reviews — streamed below the fold */}
+      <Suspense fallback={<ReviewsSkeleton />}>
+        <ReviewsLoader productId={product._id} />
+      </Suspense>
     </div>
   );
 }
