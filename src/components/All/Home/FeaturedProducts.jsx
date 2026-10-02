@@ -24,11 +24,21 @@ function ProductCard({ product, index }) {
       initial={{ opacity: 0, y: 28, filter: "blur(4px)" }}
       whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55, ease: EASE_OUT, delay: (index % 4) * 0.08 }}
+      transition={{
+        duration: 0.55,
+        ease: EASE_OUT,
+        delay: (index % 4) * 0.08,
+      }}
       whileHover={{ y: -6, transition: { duration: 0.3 } }}
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-chart-3/5 hover:border-chart-3/20"
     >
+      <Link
+        href={`/products/${product._id}`}
+        className="absolute inset-0 z-0 pointer-fine"
+        aria-label={`View ${product.title}`}
+      />
       {/* Image */}
+
       <div className="relative aspect-4/3 overflow-hidden bg-muted">
         {image ? (
           <Image
@@ -158,7 +168,9 @@ export default function FeaturedProducts({ products = [] }) {
             <Tag size={28} className="text-muted-foreground/40" />
           </div>
           <p className="text-muted-foreground font-medium">No products yet</p>
-          <p className="text-sm text-muted-foreground/70 mt-1">Check back soon for fresh listings!</p>
+          <p className="text-sm text-muted-foreground/70 mt-1">
+            Check back soon for fresh listings!
+          </p>
         </motion.div>
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

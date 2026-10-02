@@ -34,6 +34,11 @@ const nextConfig = {
         pathname: "**",
       },
       {
+        protocol: "https",
+        hostname: "i.ibb.co.com",
+        pathname: "**",
+      },
+      {
         // Allow any https host — covers sample/user-supplied image URLs
         protocol: "https",
         hostname: "**",
