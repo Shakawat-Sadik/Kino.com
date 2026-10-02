@@ -24,7 +24,6 @@ const protectedEndpoints = [
 ];
 
 async function fetchAPI(endpoint, options = {}) {
-  console.log("Connecting to:", API_URL);
   const needsAuth = protectedEndpoints.some(
     (route) => endpoint === route || endpoint.startsWith(`${route}/`),
   );
@@ -42,15 +41,24 @@ async function fetchAPI(endpoint, options = {}) {
     headers.authorization = `Bearer ${token}`;
   }
 
+  // Public requests use ISR (revalidate every 60 seconds), protected requests are dynamic
+  const cacheConfig = needsAuth
+    ? { cache: "no-store" }
+    : {
+        next: {
+          revalidate: 60, // ISR: cache for 60 seconds, then revalidate in background
+          tags: ["products", "reviews", "sellers", "stats"], // Tags for on-demand revalidation after mutations
+        },
+      };
+
   try {
     const res = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
-      cache: "no-store",
+      ...cacheConfig,
     });
 
     const data = await res.json();
-    console.log(`[fetchAPI] ${endpoint} response:`, data);
 
     if (!res.ok || !data.success) {
       return {
@@ -63,8 +71,6 @@ async function fetchAPI(endpoint, options = {}) {
     return data;
   } catch (error) {
     console.error("[fetchAPI] Error:", error.message);
-    console.error("Cause:", error.cause);
-    console.error("Stack:", error.stack);
     return {
       success: false,
       message: error.message || "Network error. Is the server running?",

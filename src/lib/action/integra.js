@@ -39,7 +39,6 @@ export default async function getAuthHeaders() {
     // BetterAuth JWT plugin returns { token: "..." }
     return data?.token ?? null;
   } catch (err) {
-    console.error("[getAuthHeaders] Failed to fetch token:", err.message);
     return null;
   }
 }
