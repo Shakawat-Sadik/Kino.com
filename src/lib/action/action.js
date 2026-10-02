@@ -1,4 +1,5 @@
 "use server";
+import { revalidateTag } from "next/cache";
 import getAuthHeaders from "./integra";
 
 const API_URL =
@@ -23,7 +24,7 @@ const protectedEndpoints = [
   "/buyer",
 ];
 
-async function fetchAPI(endpoint, options = {}) {
+async function fetchAPI(endpoint, { tags, ...options } = {}) {
   const needsAuth = protectedEndpoints.some(
     (route) => endpoint === route || endpoint.startsWith(`${route}/`),
   );
@@ -46,8 +47,8 @@ async function fetchAPI(endpoint, options = {}) {
     ? { cache: "no-store" }
     : {
         next: {
-          revalidate: 60, // ISR: cache for 60 seconds, then revalidate in background
-          tags: ["products", "reviews", "sellers", "stats"], // Tags for on-demand revalidation after mutations
+          revalidate: 60,
+          tags: tags || [],
         },
       };
 
@@ -97,11 +98,11 @@ export async function getProducts(query = {}) {
   if (query.page) params.set("page", String(query.page));
   if (query.limit) params.set("limit", String(query.limit));
   const qs = params.toString();
-  return await fetchAPI(`/products${qs ? `?${qs}` : ""}`);
+  return await fetchAPI(`/products${qs ? `?${qs}` : ""}`, { tags: ["products"] });
 }
 
 export async function getProductById(id) {
-  return await fetchAPI(`/products/${id}`);
+  return await fetchAPI(`/products/${id}`, { tags: ["products"] });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -125,23 +126,35 @@ export async function getMyProducts(query = {}) {
 }
 
 export async function createProduct(productData) {
-  return await fetchAPI("/seller/products", {
+  const result = await fetchAPI("/seller/products", {
     method: "POST",
     body: JSON.stringify(productData),
   });
+  if (result.success) {
+    revalidateTag("products");
+    revalidateTag("stats");
+  }
+  return result;
 }
 
 export async function updateProduct(productId, updateData) {
-  return await fetchAPI(`/seller/products/${productId}`, {
+  const result = await fetchAPI(`/seller/products/${productId}`, {
     method: "PATCH",
     body: JSON.stringify(updateData),
   });
+  if (result.success) revalidateTag("products");
+  return result;
 }
 
 export async function deleteProduct(productId) {
-  return await fetchAPI(`/seller/products/${productId}`, {
+  const result = await fetchAPI(`/seller/products/${productId}`, {
     method: "DELETE",
   });
+  if (result.success) {
+    revalidateTag("products");
+    revalidateTag("stats");
+  }
+  return result;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -264,10 +277,15 @@ export async function createPaymentIntent({ amount, productId, productTitle }) {
 }
 
 export async function confirmPayment({ transactionId, productId, sellerEmail, amount, productTitle }) {
-  return await fetchAPI("/payments/confirm", {
+  const result = await fetchAPI("/payments/confirm", {
     method: "POST",
     body: JSON.stringify({ transactionId, productId, sellerEmail, amount, productTitle }),
   });
+  if (result.success) {
+    revalidateTag("products");
+    revalidateTag("stats");
+  }
+  return result;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -276,7 +294,7 @@ export async function confirmPayment({ transactionId, productId, sellerEmail, am
 // ─────────────────────────────────────────────────────────────
 
 export async function getMarketplaceStats() {
-  return await fetchAPI("/stats");
+  return await fetchAPI("/stats", { tags: ["stats"] });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -285,7 +303,7 @@ export async function getMarketplaceStats() {
 // ─────────────────────────────────────────────────────────────
 
 export async function getTopSellers(limit = 3) {
-  return await fetchAPI(`/sellers/top?limit=${limit}`);
+  return await fetchAPI(`/sellers/top?limit=${limit}`, { tags: ["sellers"] });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -297,11 +315,11 @@ export async function getTopSellers(limit = 3) {
 // ─────────────────────────────────────────────────────────────
 
 export async function getAllReviews(limit = 6) {
-  return await fetchAPI(`/reviews?limit=${limit}`);
+  return await fetchAPI(`/reviews?limit=${limit}`, { tags: ["reviews"] });
 }
 
 export async function getProductReviews(productId) {
-  return await fetchAPI(`/reviews/${productId}`);
+  return await fetchAPI(`/reviews/${productId}`, { tags: ["reviews"] });
 }
 
 export async function addReview({ productId, rating, comment }) {
@@ -318,6 +336,7 @@ export async function addReview({ productId, rating, comment }) {
     if (!res.ok || !data.success) {
       return { success: false, message: data.message || "Request failed", result: null };
     }
+    revalidateTag("reviews");
     return data;
   } catch (error) {
     return { success: false, message: error.message || "Network error", result: null };
@@ -470,23 +489,32 @@ export async function updateAdminProduct(productId, { title, category, condition
   if (condition !== undefined) payload.condition = condition;
   if (price !== undefined) payload.price = price;
   if (description !== undefined) payload.description = description;
-  return await fetchAPI(`/admin/products/${productId}`, {
+  const result = await fetchAPI(`/admin/products/${productId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+  if (result.success) revalidateTag("products");
+  return result;
 }
 
 export async function updateProductStatus(productId, status) {
-  return await fetchAPI(`/admin/products/${productId}/status`, {
+  const result = await fetchAPI(`/admin/products/${productId}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
+  if (result.success) revalidateTag("products");
+  return result;
 }
 
 export async function deleteAdminProduct(productId) {
-  return await fetchAPI(`/admin/products/${productId}`, {
+  const result = await fetchAPI(`/admin/products/${productId}`, {
     method: "DELETE",
   });
+  if (result.success) {
+    revalidateTag("products");
+    revalidateTag("stats");
+  }
+  return result;
 }
 
 // ─────────────────────────────────────────────────────────────
