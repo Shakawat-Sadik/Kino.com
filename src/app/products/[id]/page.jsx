@@ -1,10 +1,15 @@
+import { cache } from 'react';
 import { notFound } from "next/navigation";
+
+export const revalidate = 180;
 import { getProductById, getProductReviews } from "@/lib/action/action";
 import ProductDetail from "@/components/All/Products/ProductDetail";
 
+const getCachedProduct = cache(getProductById);
+
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const data = await getProductById(id);
+  const data = await getCachedProduct(id);
   const product = data?.result;
   return {
     title: product ? `${product.title} | Kino.com` : "Product | Kino.com",
@@ -15,7 +20,7 @@ export default async function ProductDetailPage({ params }) {
   const { id } = await params;
 
   const [productData, reviewsData] = await Promise.all([
-    getProductById(id),
+    getCachedProduct(id),
     getProductReviews(id),
   ]);
 
