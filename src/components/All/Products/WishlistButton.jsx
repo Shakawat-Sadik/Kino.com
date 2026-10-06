@@ -2,11 +2,16 @@
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { addToWishlist, removeFromWishlist } from "@/lib/action/action";
-import { ActionSwapIcon, ActionSwapText } from "@/components/motion/action-swap";
+import {
+  ActionSwapIcon,
+  ActionSwapText,
+} from "@/components/motion/action-swap";
 import { SPRING_PRESS } from "@/lib/ease";
 import { motion } from "motion/react";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/motion/button/base";
+import Link from "next/link";
 
 export default function WishlistButton({ productId }) {
   const { data: session } = authClient.useSession();
@@ -17,12 +22,20 @@ export default function WishlistButton({ productId }) {
 
   if (!session) {
     return (
-      <p className="text-xs text-muted-foreground">
-        <a href="/auth/login" className="underline underline-offset-2 hover:text-foreground">
-          Login
-        </a>{" "}
-        to save to wishlist
-      </p>
+      <Button
+        variant="outline"
+        className="text-xs text-muted-foreground border border-dashed border-border rounded-full px-8 py-3.5"
+        href="/auth/login"
+      >
+        <Link href="/auth/login">
+          <span
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            Login
+          </span>{" "}
+          to save to wishlist
+        </Link>
+      </Button>
     );
   }
 
@@ -69,10 +82,7 @@ export default function WishlistButton({ productId }) {
       }`}
     >
       <ActionSwapIcon value={value} animation="roll" className="h-4 w-4">
-        <Heart
-          size={16}
-          className={saved ? "fill-chart-3 text-chart-3" : ""}
-        />
+        <Heart size={16} className={saved ? "fill-chart-3 text-chart-3" : ""} />
       </ActionSwapIcon>
       <ActionSwapText value={value} animation="roll">
         {saved ? "In Wishlist" : "Add to Wishlist"}
