@@ -12,10 +12,11 @@ const TILT_SPRING = { stiffness: 300, damping: 28 };
 const GLOW_SPRING = { stiffness: 180, damping: 22 };
 
 const CONDITION_COLOR = {
-  "Like New": { classes: "bg-chart-2/10 text-chart-2 border-chart-2/20", glow: "#22c55e" },
-  Good:        { classes: "bg-chart-3/10 text-chart-3 border-chart-3/20", glow: "#86efac" },
-  Used:        { classes: "bg-chart-4/10 text-chart-4 border-chart-4/20", glow: "#f59e0b" },
-  Refurbished: { classes: "bg-chart-1/10 text-chart-1 border-chart-1/20", glow: "#60a5fa" },
+  "Like New": { classes: "bg-chart-2/50 text-chart-4 border-chart-2/20", glow: "#22c55e" },
+  Good:        { classes: "bg-chart-3/50 text-chart-5 border-chart-3/20", glow: "#86efac" },
+  Used:        { classes: "bg-chart-4/50 text-chart-1 border-chart-4/20", glow: "#f59e0b" },
+  Refurbished: { classes: "bg-chart-1/50 text-chart-3 border-chart-1/20", glow: "#60a5fa" },
+  Excellent:   { classes: "bg-chart-2/50 text-chart-5 border-chart-5/20", glow: "#a78bfa" },
 };
 const DEFAULT_GLOW = "#a78bfa";
 
@@ -87,7 +88,7 @@ function Card({ product, dimmed, onHoverStart, onHoverEnd }) {
       />
 
       {/* Image */}
-      <div className="relative z-10 aspect-[4/3] overflow-hidden bg-muted">
+      <div className="relative z-10 aspect-4/3 overflow-hidden bg-muted">
         {image ? (
           <Image
             src={image}
@@ -131,7 +132,7 @@ function Card({ product, dimmed, onHoverStart, onHoverEnd }) {
       {/* Accent bottom line */}
       <div
         aria-hidden
-        className="absolute bottom-0 left-0 z-10 h-[2px] w-0 rounded-full transition-all duration-500 group-hover:w-full"
+        className="absolute bottom-0 left-0 z-10 h-0.5 w-0 rounded-full transition-all duration-500 group-hover:w-full"
         style={{ background: `linear-gradient(to right, ${glowColor}80, transparent)` }}
       />
     </motion.article>
