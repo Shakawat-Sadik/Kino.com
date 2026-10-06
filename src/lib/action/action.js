@@ -4,8 +4,12 @@ import getAuthHeaders from "./integra";
 
 const API_URL =
   process.env.NODE_ENV === "production"
-    ? process.env.REMOTE_SERVER_URL
+    ? process.env.REMOTE_MAIN_SERVER_URL || process.env.REMOTE_BACKUP_SERVER_URL
     : process.env.SERVER_URL || "http://localhost:5000";
+
+if (!API_URL) {
+  throw new Error("API_URL is not defined");
+}
 
 // ─────────────────────────────────────────────────────────────
 // Core fetch wrapper
