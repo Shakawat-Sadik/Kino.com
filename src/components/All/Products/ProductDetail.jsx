@@ -110,7 +110,7 @@ export default function ProductDetail({ product }) {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex items-center flex-wrap gap-3">
             {product.status === "available" ? (
               <Button asChild className="h-11 rounded-full px-8 font-semibold">
                 <Link href={`/checkout/${product._id}`}>
@@ -130,33 +130,36 @@ export default function ProductDetail({ product }) {
           </div>
 
           {/* Seller info */}
-          {product.sellerInfo && (
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Seller Information
-              </p>
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">
-                  {product.sellerInfo.name}
+          
+          {
+            product.sellerInfo && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Seller Information
                 </p>
-                {product.sellerInfo.email && (
-                  <a
-                    href={`mailto:${product.sellerInfo.email}`}
-                    className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    <Mail size={12} />
-                    {product.sellerInfo.email}
-                  </a>
-                )}
-                {product.sellerInfo.phone && (
-                  <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Phone size={12} />
-                    {product.sellerInfo.phone}
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    {product.sellerInfo.name}
                   </p>
-                )}
+                  {product.sellerInfo.email && (
+                    <a
+                      href={`mailto:${product.sellerInfo.email}`}
+                      className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <Mail size={12} />
+                      {product.sellerInfo.email}
+                    </a>
+                  )}
+                  {product.sellerInfo.phone && (
+                    <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Phone size={12} />
+                      {product.sellerInfo.phone}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )
+          }
         </div>
       </div>
 
