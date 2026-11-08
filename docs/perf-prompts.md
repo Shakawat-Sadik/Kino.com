@@ -123,6 +123,7 @@ Run `pnpm build`, then `pnpm dev` and check `/products` renders products in the
 initial HTML (no empty skeleton). Report the route-table line for `/products`
 and anything you had to change outside the plan.
 
+Note: If the this task is already complete, then just confirm this plan as "implemented" and then we'll move on to the next task.
 ---
 
 ### 6. Server-side role guards

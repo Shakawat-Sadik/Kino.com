@@ -19,12 +19,12 @@ const ExplosiveExperimentsPage = async () => {
   try {
     const API_URL =
       process.env.NODE_ENV === "production"
-        ? process.env.REMOTE_SERVER_URL
+        ? process.env.REMOTE_RENDER_URL ?? process.env.REMOTE_SERVER_URL
         : process.env.SERVER_URL;
-    const server = process.env.REMOTE_SERVER_URL;
+    const server = process.env.REMOTE_RENDER_URL ?? process.env.REMOTE_SERVER_URL;
     console.log("API URL in action.js:", server);
     const result = await fetch(
-      `${process.env.NEXT_PUBLIC_REMOTE_SERVER_URL}/doctors`,
+      `${API_URL}/doctors`,
     );
     data = await result.json();
 
