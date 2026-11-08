@@ -2,15 +2,86 @@
 import { revalidateTag } from "next/cache";
 import getAuthHeaders from "./integra";
 
-// const API_URL =
-//   process.env.NODE_ENV === "production"
-//     ? process.env.REMOTE_MAIN_SERVER_URL || process.env.REMOTE_BACKUP_SERVER_URL
-//     : process.env.SERVER_URL || "http://localhost:5000";
+// Failover: the backup backend is a runtime failsafe for the primary, not just
+// a startup default. `||` alone only picks a URL once at module load — since the
+// primary URL is a non-empty string it always wins, so the backup is never used
+// when the primary is reachable-but-down (e.g. a cold/hung Render instance),
+// which is exactly when we need it. API_BASES is the ordered list to try.
+const API_BASES = [
+  process.env.REMOTE_MAIN_SERVER_URL,
+  process.env.REMOTE_BACKUP_SERVER_URL,
+].filter(Boolean);
 
-const API_URL = process.env.REMOTE_MAIN_SERVER_URL || process.env.REMOTE_BACKUP_SERVER_URL
+if (API_BASES.length === 0) {
+  throw new Error(
+    "No API server configured (set REMOTE_MAIN_SERVER_URL and/or REMOTE_BACKUP_SERVER_URL)",
+  );
+}
 
-if (!API_URL) {
-  throw new Error("API_URL is not defined");
+// Per-attempt timeout: how long to wait on one backend before failing over.
+// Reads fail over aggressively; writes/uploads wait longer so we don't abort a
+// request the server may already be processing (which could duplicate it).
+const READ_TIMEOUT_MS = 6_000;
+const WRITE_TIMEOUT_MS = 20_000;
+const UPLOAD_TIMEOUT_MS = 30_000;
+
+// Circuit breaker: once the primary fails, skip it for a cooldown window so we
+// don't re-pay the timeout on every request while it's down.
+const PRIMARY_COOLDOWN_MS = 30_000;
+let primaryDownUntil = 0;
+
+function orderedBases() {
+  if (API_BASES.length < 2) return API_BASES;
+  // During cooldown, try the backup first (primary stays as a last resort).
+  return Date.now() < primaryDownUntil ? [API_BASES[1], API_BASES[0]] : API_BASES;
+}
+
+// Race the request against a timeout instead of aborting it. An AbortController
+// signal opts a fetch out of Next's Data Cache; racing leaves the cached-read
+// fetch untouched (and lets a slow primary still warm the cache in the
+// background). Promise.race attaches a handler to `request`, so a late rejection
+// after the timeout wins does not surface as an unhandled rejection.
+function withTimeout(request, ms) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms);
+  });
+  return Promise.race([request, timeout]).finally(() => clearTimeout(timer));
+}
+
+// Low-level fetch with ordered failover across API_BASES. Returns the first
+// Response that isn't a transport failure or a 5xx; throws only if every base
+// fails. Trips/closes the circuit breaker based on the primary's health.
+async function fetchWithFailover(endpoint, options = {}, { timeoutMs } = {}) {
+  const bases = orderedBases();
+  let lastError;
+
+  for (let i = 0; i < bases.length; i++) {
+    const base = bases[i];
+    const isPrimary = base === API_BASES[0];
+    const isLast = i === bases.length - 1;
+
+    try {
+      const request = fetch(`${base}${endpoint}`, options);
+      const res = timeoutMs ? await withTimeout(request, timeoutMs) : await request;
+
+      // A gateway-class error means this host is unhealthy — try the next one.
+      if (res.status >= 500 && !isLast) {
+        if (isPrimary) primaryDownUntil = Date.now() + PRIMARY_COOLDOWN_MS;
+        lastError = new Error(`${base} responded ${res.status}`);
+        continue;
+      }
+
+      if (isPrimary) primaryDownUntil = 0; // primary healthy → close the breaker
+      return res;
+    } catch (err) {
+      if (isPrimary) primaryDownUntil = Date.now() + PRIMARY_COOLDOWN_MS;
+      lastError = err;
+      if (isLast) throw err;
+    }
+  }
+
+  throw lastError ?? new Error("All API servers failed");
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -58,12 +129,15 @@ async function fetchAPI(endpoint, { tags, ...options } = {}) {
         },
       };
 
+  const timeoutMs =
+    options.method && options.method !== "GET" ? WRITE_TIMEOUT_MS : READ_TIMEOUT_MS;
+
   try {
-    const res = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-      ...cacheConfig,
-    });
+    const res = await fetchWithFailover(
+      endpoint,
+      { ...options, headers, ...cacheConfig },
+      { timeoutMs },
+    );
 
     const data = await res.json();
 
@@ -332,12 +406,16 @@ export async function addReview({ productId, rating, comment }) {
   try {
     const token = await getAuthHeaders();
     if (!token) return { success: false, message: "Not authenticated", result: null };
-    const res = await fetch(`${API_URL}/reviews`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", authorization: `Bearer ${token}` },
-      body: JSON.stringify({ productId, rating, comment }),
-      cache: "no-store",
-    });
+    const res = await fetchWithFailover(
+      "/reviews",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ productId, rating, comment }),
+        cache: "no-store",
+      },
+      { timeoutMs: WRITE_TIMEOUT_MS },
+    );
     const data = await res.json();
     if (!res.ok || !data.success) {
       return { success: false, message: data.message || "Request failed", result: null };
@@ -593,17 +671,21 @@ export async function uploadImage(file, folder = "Kino.com/products") {
     const token = await getAuthHeaders();
     if (!token) return { success: false, message: "Not authenticated", result: null };
 
-    const res = await fetch(`${API_URL}/upload`, {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": file.type,
-        "x-upload-folder": folder,
-        "x-upload-filename": file.name,
+    const res = await fetchWithFailover(
+      "/upload",
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": file.type,
+          "x-upload-folder": folder,
+          "x-upload-filename": file.name,
+        },
+        body: file,
+        cache: "no-store",
       },
-      body: file,
-      cache: "no-store",
-    });
+      { timeoutMs: UPLOAD_TIMEOUT_MS },
+    );
 
     const data = await res.json();
     if (!res.ok || !data.success) {
@@ -623,11 +705,15 @@ export async function deleteImage(publicId) {
 
     // publicId may contain slashes (e.g. "Kino.com/products/abc123") —
     // the Express wildcard route /*publicId captures the full path correctly
-    const res = await fetch(`${API_URL}/upload/${publicId}`, {
-      method: "DELETE",
-      headers: { authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
+    const res = await fetchWithFailover(
+      `/upload/${publicId}`,
+      {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${token}` },
+        cache: "no-store",
+      },
+      { timeoutMs: WRITE_TIMEOUT_MS },
+    );
 
     const data = await res.json();
     if (!res.ok || !data.success) {
