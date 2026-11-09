@@ -133,7 +133,7 @@ export function ThemeToggle({
           value={isDark ? "dark" : "light"}
           animation="blur"
           className={iconClassName}>
-          {isDark ? (
+          {!isDark ? (
             <Sun className={iconClassName} />
           ) : (
             <Moon className={iconClassName} />
