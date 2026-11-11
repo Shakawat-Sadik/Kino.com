@@ -47,6 +47,8 @@ export default function AddProductPage() {
     condition: "",
     price: "",
     quantity: "1",
+    location2: "",
+    mobile2: "",
   });
 
   const [imageFiles, setImageFiles] = useState([]);
@@ -65,8 +67,8 @@ export default function AddProductPage() {
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
-    if (imageFiles.length + files.length > 4) {
-      toast.error("Maximum 4 images allowed");
+    if (imageFiles.length + files.length > 10) {
+      toast.error("Maximum 10 images allowed");
       return;
     }
     const oversized = files.filter((f) => f.size > 5 * 1024 * 1024);
@@ -140,6 +142,13 @@ export default function AddProductPage() {
         quantity: Number(form.quantity),
         images: imageUrls,
       };
+
+      // Optional per-listing overrides; location1/mobile1 are filled server-side
+      // from the seller's profile.
+      const location2 = form.location2.trim();
+      const mobile2 = form.mobile2.trim();
+      if (location2) productData.location2 = location2;
+      if (mobile2) productData.mobile2 = mobile2;
 
       const res = await createProduct(productData);
 
@@ -279,6 +288,31 @@ export default function AddProductPage() {
               />
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="location2" className="text-xs">Listing Location</Label>
+              <Input
+                id="location2"
+                value={form.location2}
+                onChange={handleChange("location2")}
+                placeholder="Defaults to your profile location"
+                className="bg-background"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mobile2" className="text-xs">Alternate Contact</Label>
+              <Input
+                id="mobile2"
+                type="tel"
+                value={form.mobile2}
+                onChange={handleChange("mobile2")}
+                placeholder="Optional, e.g. +8801XXXXXXXXX"
+                className="bg-background"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Image upload */}
@@ -288,7 +322,7 @@ export default function AddProductPage() {
               Product Images <span className="text-red-500">*</span>
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Upload up to 4 images. First image is the cover.
+              Upload up to 10 images. First image is the cover.
             </p>
           </div>
 
@@ -319,7 +353,7 @@ export default function AddProductPage() {
               </div>
             ))}
 
-            {imagePreviews.length < 4 && (
+            {imagePreviews.length < 10 && (
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
