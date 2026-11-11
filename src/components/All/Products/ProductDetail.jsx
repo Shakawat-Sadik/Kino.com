@@ -103,10 +103,10 @@ export default function ProductDetail({ product }) {
                 Listed {uploadedDate}
               </span>
             )}
-            {product.stock != null && (
+            {product.quantity != null && (
               <span className="flex items-center gap-1">
                 <ShoppingBag size={11} />
-                {product.stock} in stock
+                {product.quantity} in stock
               </span>
             )}
           </div>
@@ -149,7 +149,7 @@ export default function ProductDetail({ product }) {
             if (!sellerName && !sellerEmail && !mobile1) return null;
 
             return (
-              <div className="mt-6 grid grid-cols-4 gap-4">
+              <div className="w-full mt-6 grid grid-cols-4 gap-4">
                 <div className="rounded-xl border border-border bg-card p-4">
                   <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Seller Information
