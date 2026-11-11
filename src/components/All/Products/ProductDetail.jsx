@@ -139,7 +139,7 @@ export default function ProductDetail({ product }) {
             // while older products used sellerInfo.{name,email,phone}. Resolve
             // both shapes so the panel renders for either.
             const seller = product.sellerInfo;
-            const sellerImage = seller?.image;
+            const sellerImage = seller?.image || seller?.photo;
             const sellerName = seller?.name || product.sellerName;
             const sellerEmail = seller?.email || product.sellerEmail;
             const mobile1 = seller?.phone || seller?.contact?.mobile1;
@@ -149,8 +149,8 @@ export default function ProductDetail({ product }) {
             if (!sellerName && !sellerEmail && !mobile1) return null;
 
             return (
-              <div className="w-full mt-6 grid grid-cols-4 gap-4">
-                <div className="rounded-xl border border-border bg-card p-4">
+              <div className="w-full flex flex-col items-center md:grid md:grid-cols-4 gap-4 rounded-xl border border-border bg-card p-4 ">
+                <div className="col-span-3">
                   <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Seller Information
                   </p>
@@ -190,7 +190,7 @@ export default function ProductDetail({ product }) {
                   </div>
                 </div>
                 {sellerImage && (
-                  <div className="col-span-3 flex items-center justify-center rounded-xl border border-border bg-card p-4">
+                  <div className="col-span-1 flex items-center justify-center rounded-xl border border-border bg-card p-4">
                     <Image
                       src={sellerImage}
                       alt={`${sellerName}'s Image` || "Seller Image"}

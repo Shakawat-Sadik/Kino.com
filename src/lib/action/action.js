@@ -41,7 +41,7 @@ function orderedBases() {
 // fetch untouched (and lets a slow primary still warm the cache in the
 // background). Promise.race attaches a handler to `request`, so a late rejection
 // after the timeout wins does not surface as an unhandled rejection.
-function withTimeout(request, ms) {
+async function withTimeout(request, ms) {
   let timer;
   const timeout = new Promise((_, reject) => {
     timer = setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms);

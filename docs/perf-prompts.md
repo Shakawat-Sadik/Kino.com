@@ -151,9 +151,29 @@ three sessions — do not try all 13 pages at once.
 
 ---
 
-Convert these dashboard pages from `useEffect` + server-action fetch to
+Convert the admin dashboard pages from `useEffect` + server-action fetch to
+server-side fetch + props, keeping server actions for mutations only.
+
+
+Add a `loading.jsx` per route so they stream. Keep each page's UI identical.
+Run `pnpm build` and list the route-table lines for the converted routes.
+Stop after these pages — I'll send the next batch separately.
+
+---
+
+Convert the buyer dashboard pages from `useEffect` + server-action fetch to
+server-side fetch + props, keeping server actions for mutations only.
+
+
+Add a `loading.jsx` per route so they stream. Keep each page's UI identical.
+Run `pnpm build` and list the route-table lines for the converted routes.
+Stop after these pages — I'll send the next batch separately.
+
+---
+
+Convert the seller dashboard pages from `useEffect` + server-action fetch to
 server-side fetch + props, keeping server actions for mutations only:
-<paste 4–5 page paths>
+
 
 Add a `loading.jsx` per route so they stream. Keep each page's UI identical.
 Run `pnpm build` and list the route-table lines for the converted routes.
