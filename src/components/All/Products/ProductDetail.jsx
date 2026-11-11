@@ -10,10 +10,12 @@ import {
   ShoppingBag,
   Phone,
   Mail,
+  MapPin,
   ChevronRight,
   Tag,
   Calendar,
 } from "lucide-react";
+import Image from "next/image";
 
 const CONDITION_COLOR = {
   "Like New": "bg-chart-2/10 text-chart-2",
@@ -130,36 +132,77 @@ export default function ProductDetail({ product }) {
           </div>
 
           {/* Seller info */}
-          
-          {
-            product.sellerInfo && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Seller Information
-                </p>
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    {product.sellerInfo.name}
+
+          {(() => {
+            // Seller fields were restructured: newer products store userId +
+            // contact.{mobile1,mobile2} and keep name/email at the top level,
+            // while older products used sellerInfo.{name,email,phone}. Resolve
+            // both shapes so the panel renders for either.
+            const seller = product.sellerInfo;
+            const sellerImage = seller?.image;
+            const sellerName = seller?.name || product.sellerName;
+            const sellerEmail = seller?.email || product.sellerEmail;
+            const mobile1 = seller?.phone || seller?.contact?.mobile1;
+            const mobile2 = seller?.contact?.mobile2;
+            const sellerLocation = product.location2 || product.location1;
+
+            if (!sellerName && !sellerEmail && !mobile1) return null;
+
+            return (
+              <div className="mt-6 grid grid-cols-4 gap-4">
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Seller Information
                   </p>
-                  {product.sellerInfo.email && (
-                    <a
-                      href={`mailto:${product.sellerInfo.email}`}
-                      className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      <Mail size={12} />
-                      {product.sellerInfo.email}
-                    </a>
-                  )}
-                  {product.sellerInfo.phone && (
-                    <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Phone size={12} />
-                      {product.sellerInfo.phone}
-                    </p>
-                  )}
+                  <div className="space-y-2">
+                    {sellerName && (
+                      <p className="text-sm font-semibold text-foreground">
+                        {sellerName}
+                      </p>
+                    )}
+                    {sellerEmail && (
+                      <a
+                        href={`mailto:${sellerEmail}`}
+                        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <Mail size={12} />
+                        {sellerEmail}
+                      </a>
+                    )}
+                    {mobile1 && (
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Phone size={12} />
+                        {mobile1}
+                      </p>
+                    )}
+                    {mobile2 && (
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Phone size={12} />
+                        {mobile2}
+                      </p>
+                    )}
+                    {sellerLocation && (
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <MapPin size={12} />
+                        {sellerLocation}
+                      </p>
+                    )}
+                  </div>
                 </div>
+                {sellerImage && (
+                  <div className="col-span-3 flex items-center justify-center rounded-xl border border-border bg-card p-4">
+                    <Image
+                      src={sellerImage}
+                      alt={`${sellerName}'s Image` || "Seller Image"}
+                      width={100}
+                      height={100}
+                      className="rounded-full object-cover"
+                    />
+                  </div>
+                )}
               </div>
-            )
-          }
+            );
+          })()}
         </div>
       </div>
 
