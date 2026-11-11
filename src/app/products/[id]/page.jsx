@@ -11,7 +11,7 @@ export async function generateMetadata({ params }) {
   const { id } = await params;
   const data = await getCachedProduct(id);
   const product = data?.result;
-  console.log(`Product data for metadata generation:`, product);
+  // console.log(`Product data for metadata generation:`, product);
   return {
     title: product ? `${product.title} | Kino.com` : "Product | Kino.com",
   };
@@ -22,7 +22,7 @@ export default async function ProductDetailPage({ params }) {
 
   const productData = await getCachedProduct(id);
   const product = productData?.result;
-  console.log(`Product data for page rendering:`, product);
+  // console.log(`Product data for page rendering:`, product);
   if (!product) notFound();
 
   return (
