@@ -64,6 +64,8 @@ import {
   ShieldCheck as RoleIcon,
 } from "lucide-react";
 import { SpecializedPagination } from "@/components/All/dashboard/shared/SpecializedPagination";
+import { LocationSelect } from "@/components/All/shared/LocationSelect";
+import { formatLocation, normalizeContact, toLocationObject } from "@/lib/user-fields";
 
 const ROLES = ["All", "buyer", "seller", "admin"];
 const EDIT_ROLES = ["buyer", "seller", "admin"];
@@ -83,14 +85,6 @@ function DetailRow({ icon: Icon, label, value }) {
   );
 }
 
-function formatLocation(loc) {
-  if (!loc) return "";
-  if (typeof loc === "object") {
-    return [loc.area, loc.district, loc.division, loc.country].filter(Boolean).join(", ");
-  }
-  return loc;
-}
-
 export function AdminUsersClient({
   initialUsers,
   initialTotal,
@@ -107,7 +101,12 @@ export function AdminUsersClient({
   const [search, setSearch] = useState("");
 
   const [editTarget, setEditTarget] = useState(null);
-  const [editForm, setEditForm] = useState({ name: "", role: "", location: "", contact: "" });
+  const [editForm, setEditForm] = useState({
+    name: "",
+    role: "",
+    location: toLocationObject(null),
+    contact: "",
+  });
   const [editState, setEditState] = useState("idle");
 
   const [viewTargetId, setViewTargetId] = useState(null);
@@ -137,7 +136,7 @@ export function AdminUsersClient({
     setEditForm({
       name: user.name || "",
       role: user.role || "buyer",
-      location: formatLocation(user.location),
+      location: toLocationObject(user.location),
       contact: user.contact ? String(user.contact) : "",
     });
     setEditTarget(user);
@@ -149,13 +148,14 @@ export function AdminUsersClient({
     e.preventDefault();
     if (editState === "loading") return;
     setEditState("loading");
-    const res = await updateAdminUser(editTarget._id, editForm);
+    const payload = { ...editForm, contact: normalizeContact(editForm.contact) };
+    const res = await updateAdminUser(editTarget._id, payload);
     if (res.success) {
       setEditState("success");
       toast.success("User updated");
       setUsers((prev) =>
         prev.map((u) =>
-          u._id === editTarget._id ? { ...u, ...editForm } : u
+          u._id === editTarget._id ? { ...u, ...payload } : u
         )
       );
       setTimeout(() => setEditTarget(null), 800);
@@ -185,7 +185,12 @@ export function AdminUsersClient({
     setBusy(userId);
     const res = await deleteUser(userId);
     if (res.success) {
-      toast.success("User deleted");
+      const removed = res.result?.removedListings ?? 0;
+      toast.success(
+        removed > 0
+          ? `User deleted · ${removed} unsold listing${removed === 1 ? "" : "s"} removed`
+          : "User deleted",
+      );
       setUsers((prev) => prev.filter((u) => u._id !== userId));
       setViewTargetId((prev) => (prev === userId ? null : prev));
     } else {
@@ -504,15 +509,12 @@ export function AdminUsersClient({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-location" className="flex items-center gap-1.5 text-xs">
+              <Label className="flex items-center gap-1.5 text-xs">
                 <MapPin className="h-3.5 w-3.5" /> Location
               </Label>
-              <Input
-                id="edit-location"
+              <LocationSelect
                 value={editForm.location}
-                onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}
-                placeholder="Dhaka, Bangladesh"
-                className="bg-background"
+                onChange={(location) => setEditForm((p) => ({ ...p, location }))}
               />
             </div>
 

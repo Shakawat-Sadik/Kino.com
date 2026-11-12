@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { StatefulButton } from "@/components/motion/button/stateful";
 import { FileUpload } from "@/components/motion/file-upload";
 import { User, Phone, MapPin, Save, ShieldCheck, Lock, ArrowLeftRight, ShoppingCart } from "lucide-react";
+import { LocationSelect } from "@/components/All/shared/LocationSelect";
+import { normalizeContact, toLocationObject } from "@/lib/user-fields";
 
 function isPhoneLocked(contact) {
   const digits = String(contact || "").replace(/^\+?880/, "").replace(/\D/g, "");
@@ -29,7 +31,7 @@ export default function SellerProfilePage() {
   const [form, setForm] = useState({
     name: "",
     contact: "",
-    location: "",
+    location: toLocationObject(null),
     image: "",
   });
 
@@ -38,15 +40,10 @@ export default function SellerProfilePage() {
       const res = await getMyProfile();
       if (res.success) {
         setProfile(res.result);
-        const loc = res.result.location;
-        const locationStr =
-          loc && typeof loc === "object"
-            ? [loc.area, loc.district, loc.division, loc.country].filter(Boolean).join(", ")
-            : loc || "";
         setForm({
           name: res.result.name || "",
           contact: res.result.contact ? String(res.result.contact) : "",
-          location: locationStr,
+          location: toLocationObject(res.result.location),
           image: res.result.image || "",
         });
       }
@@ -63,12 +60,14 @@ export default function SellerProfilePage() {
     e.preventDefault();
     if (saveState === "loading") return;
     setSaveState("loading");
-    const res = await updateMyProfile(form);
+    const payload = { ...form, contact: normalizeContact(form.contact) };
+    const res = await updateMyProfile(payload);
     if (res.success) {
       await authClient.updateUser({ name: form.name, image: form.image || null });
       setSaveState("success");
       toast.success("Profile updated");
-      setProfile((prev) => ({ ...prev, ...form }));
+      setForm(payload);
+      setProfile((prev) => ({ ...prev, ...payload }));
     } else {
       setSaveState("error");
       toast.error(res.message || "Failed to update profile");
@@ -225,15 +224,12 @@ export default function SellerProfilePage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="location" className="flex items-center gap-1.5 text-xs">
+          <Label className="flex items-center gap-1.5 text-xs">
             <MapPin className="h-3.5 w-3.5" /> Location
           </Label>
-          <Input
-            id="location"
+          <LocationSelect
             value={form.location}
-            onChange={handleChange("location")}
-            placeholder="Dhaka, Bangladesh"
-            className="bg-background"
+            onChange={(location) => setForm((prev) => ({ ...prev, location }))}
           />
         </div>
 

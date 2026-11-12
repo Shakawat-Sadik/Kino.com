@@ -12,18 +12,12 @@ import { StatefulButton } from "@/components/motion/button/stateful";
 import { FileUpload } from "@/components/motion/file-upload";
 import { User, Phone, MapPin, Save, ShieldCheck, Lock } from "lucide-react";
 import Image from "next/image";
+import { LocationSelect } from "@/components/All/shared/LocationSelect";
+import { normalizeContact, toLocationObject } from "@/lib/user-fields";
 
 function isPhoneLocked(contact) {
   const digits = String(contact || "").replace(/^\+?880/, "").replace(/\D/g, "");
   return digits.length >= 10;
-}
-
-function deriveLocation(loc) {
-  if (!loc) return "";
-  if (typeof loc === "object") {
-    return [loc.area, loc.district, loc.division, loc.country].filter(Boolean).join(", ");
-  }
-  return loc;
 }
 
 export function AdminProfileClient({ initialProfile }) {
@@ -33,11 +27,11 @@ export function AdminProfileClient({ initialProfile }) {
   const [uploadItems, setUploadItems] = useState([]);
 
   const [form, setForm] = useState(() => {
-    if (!initialProfile) return { name: "", contact: "", location: "", image: "" };
+    if (!initialProfile) return { name: "", contact: "", location: toLocationObject(null), image: "" };
     return {
       name: initialProfile.name || "",
       contact: initialProfile.contact ? String(initialProfile.contact) : "",
-      location: deriveLocation(initialProfile.location),
+      location: toLocationObject(initialProfile.location),
       image: initialProfile.image || "",
     };
   });
@@ -50,12 +44,14 @@ export function AdminProfileClient({ initialProfile }) {
     e.preventDefault();
     if (saveState === "loading") return;
     setSaveState("loading");
-    const res = await updateMyProfile(form);
+    const payload = { ...form, contact: normalizeContact(form.contact) };
+    const res = await updateMyProfile(payload);
     if (res.success) {
       await authClient.updateUser({ name: form.name, image: form.image || null });
       setSaveState("success");
       toast.success("Profile updated");
-      setProfile((prev) => ({ ...prev, ...form }));
+      setForm(payload);
+      setProfile((prev) => ({ ...prev, ...payload }));
     } else {
       setSaveState("error");
       toast.error(res.message || "Failed to update profile");
@@ -175,15 +171,12 @@ export function AdminProfileClient({ initialProfile }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="location" className="flex items-center gap-1.5 text-xs">
+          <Label className="flex items-center gap-1.5 text-xs">
             <MapPin className="h-3.5 w-3.5" /> Location
           </Label>
-          <Input
-            id="location"
+          <LocationSelect
             value={form.location}
-            onChange={handleChange("location")}
-            placeholder="Dhaka, Bangladesh"
-            className="bg-background"
+            onChange={(location) => setForm((prev) => ({ ...prev, location }))}
           />
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -20,17 +20,9 @@ import {
 } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { StatefulButton } from "@/components/motion/button/stateful";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { FileUpload } from "@/components/motion/file-upload";
-
-// Import the location data
-import bdLocations from "@/lib/bd-locations.json";
+import { LocationSelect } from "@/components/All/shared/LocationSelect";
+import { EMPTY_LOCATION, normalizeContact } from "@/lib/user-fields";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PROFILES_PRESET;
@@ -64,92 +56,9 @@ export default function SignUpForm() {
   const [photoItems, setPhotoItems] = useState([]);
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
 
-  // Location States
-  const [selectedDivision, setSelectedDivision] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedArea, setSelectedArea] = useState("");
-  
-  // Contact State
+  // Location (division → district → area) and contact
+  const [location, setLocation] = useState(() => ({ ...EMPTY_LOCATION }));
   const [phoneNumber, setPhoneNumber] = useState("");
-
-  // --- Dropdown Logic ---
-  const availableDistricts = useMemo(() => {
-    if (selectedDivision) {
-      const div = bdLocations.find((d) => d.division === selectedDivision);
-      return div ? div.districts : [];
-    }
-    return bdLocations.flatMap((d) => d.districts);
-  }, [selectedDivision]);
-
-  const availableAreas = useMemo(() => {
-    // If a district is selected, show ONLY its areas (clean string values)
-    if (selectedDistrict) {
-      const dist = availableDistricts.find((d) => d.district === selectedDistrict);
-      return dist ? dist.areas.map((a) => ({ value: a, label: a })) : [];
-    }
-    
-    // If NO district is selected, show ALL areas, but append district name to value to prevent Radix UI duplicate key glitch
-    const allAreas = [];
-    availableDistricts.forEach((dist) => {
-      dist.areas.forEach((area) => {
-        allAreas.push({
-          value: `${area}__${dist.district}`, // Hidden unique key
-          label: area,                         // What user sees
-        });
-      });
-    });
-    return allAreas;
-  }, [selectedDistrict, availableDistricts]);
-
-  // --- Auto-Select Handlers ---
-  const handleDivisionChange = (value) => {
-    setSelectedDivision(value);
-    setSelectedDistrict(""); // Reset children
-    setSelectedArea("");
-  };
-
-  const handleDistrictChange = (value) => {
-    setSelectedDistrict(value);
-    setSelectedArea(""); // Reset area when district changes manually
-
-    // AUTO-SELECT DIVISION
-    if (!selectedDivision) {
-      for (const div of bdLocations) {
-        if (div.districts.some((d) => d.district === value)) {
-          setSelectedDivision(div.division);
-          break;
-        }
-      }
-    }
-  };
-
-  const handleAreaChange = (value) => {
-    let finalArea = value;
-    let targetDistrict = selectedDistrict;
-
-    // If value contains "__", it means it came from the "All Areas" unfiltered list
-    if (value.includes("__")) {
-      const [areaName, distName] = value.split("__");
-      finalArea = areaName;
-      targetDistrict = distName;
-    }
-
-    setSelectedArea(finalArea);
-
-    // AUTO-SELECT DISTRICT & DIVISION
-    if (targetDistrict && targetDistrict !== selectedDistrict) {
-      setSelectedDistrict(targetDistrict);
-    }
-
-    if (!selectedDivision || (targetDistrict && targetDistrict !== selectedDistrict)) {
-      for (const div of bdLocations) {
-        if (div.districts.some((d) => d.district === targetDistrict)) {
-          setSelectedDivision(div.division);
-          break;
-        }
-      }
-    }
-  };
 
   const handlePhotoAdded = async (addedItems, rawFiles) => {
     const item = addedItems[0];
@@ -201,23 +110,8 @@ export default function SignUpForm() {
       return;
     }
 
-    const location = {
-      country: "Bangladesh",
-      division: selectedDivision,
-      district: selectedDistrict,
-      area: selectedArea,
-    };
-
-    // Format Contact
-    let finalContact = "+880";
-    if (phoneNumber) {
-      let num = phoneNumber.replace(/\D/g, ""); 
-      if (num.startsWith("0") && num.length === 11) num = num.substring(1);
-      finalContact = `+880${num}`;
-    }
-
     const { data, error } = await authClient.signUp.email({
-      email, password, name, role, image, location, contact: finalContact,
+      email, password, name, role, image, location, contact: normalizeContact(phoneNumber),
     });
     
     setUserName(data?.name);
@@ -341,34 +235,7 @@ export default function SignUpForm() {
           {/* --- LOCATION SECTION --- */}
           <div className="space-y-2">
             <Label>Location</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <Select value={selectedDivision} onValueChange={handleDivisionChange}>
-                <SelectTrigger><SelectValue placeholder="Division" /></SelectTrigger>
-                <SelectContent>
-                  {bdLocations.map((div) => (
-                    <SelectItem key={div.division} value={div.division}>{div.division}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedDistrict} onValueChange={handleDistrictChange}>
-                <SelectTrigger><SelectValue placeholder="District" /></SelectTrigger>
-                <SelectContent>
-                  {availableDistricts.map((dist) => (
-                    <SelectItem key={dist.district} value={dist.district}>{dist.district}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedArea} onValueChange={handleAreaChange}>
-                <SelectTrigger><SelectValue placeholder="Area" /></SelectTrigger>
-                <SelectContent>
-                  {availableAreas.map((area) => (
-                    <SelectItem key={area.value} value={area.value}>{area.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <LocationSelect value={location} onChange={setLocation} />
           </div>
 
           {/* --- CONTACT SECTION --- */}

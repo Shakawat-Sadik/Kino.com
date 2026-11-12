@@ -64,26 +64,11 @@ import {
   Mail,
 } from "lucide-react";
 import { SpecializedPagination } from "@/components/All/dashboard/shared/SpecializedPagination";
+import { CATEGORY_NAMES, CONDITIONS, PRODUCT_STATUSES } from "@/lib/product-options";
 
-const CATEGORIES = [
-  "All",
-  "Electronics",
-  "Mobile Phones",
-  "Furniture",
-  "Vehicles",
-  "Fashion",
-  "Books",
-  "Sports & Fitness",
-  "Gaming",
-  "Cameras",
-  "Education",
-  "Jobs & Services",
-  "Music",
-  "Others",
-];
-const EDIT_CATEGORIES = CATEGORIES.filter((c) => c !== "All");
-const CONDITIONS = ["Used", "Like New", "Refurbished"];
-const STATUSES = ["All", "pending", "available", "sold", "rejected"];
+const CATEGORIES = ["All", ...CATEGORY_NAMES];
+const EDIT_CATEGORIES = CATEGORY_NAMES;
+const STATUSES = ["All", ...PRODUCT_STATUSES];
 
 function DetailRow({ icon: Icon, label, value }) {
   return (
