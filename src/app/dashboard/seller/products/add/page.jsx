@@ -17,24 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ImagePlus, X, ArrowLeft, Package } from "lucide-react";
-
-
-const CATEGORIES = [
-  "Electronics",
-  "Mobile Phones",
-  "Furniture",
-  "Vehicles",
-  "Fashion",
-  "Books",
-  "Sports & Fitness",
-  "Gaming",
-  "Cameras",
-  "Education",
-  "Jobs & Services",
-  "Music",
-  "Others",
-];
-const CONDITIONS = ["Used", "Like New", "Refurbished"];
+import { CATEGORY_NAMES as CATEGORIES, CONDITIONS } from "@/lib/product-options";
 
 export default function AddProductPage() {
   const router = useRouter();
