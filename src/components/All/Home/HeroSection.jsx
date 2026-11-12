@@ -19,22 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-
-const CATEGORIES = [
-  "Electronics",
-  "Mobile Phones",
-  "Furniture",
-  "Vehicles",
-  "Fashion",
-  "Books",
-  "Sports & Fitness",
-  "Gaming",
-  "Cameras",
-  "Education",
-  "Jobs & Services",
-  "Music",
-  "Others",
-];
+import { CATEGORY_NAMES as CATEGORIES, categoryHref } from "@/lib/product-options";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 32, filter: "blur(6px)" },
@@ -145,7 +130,7 @@ export default function HeroSection({ stats }) {
               <span className="relative inline-block">
                 <span className="relative z-10 text-chart-3">
                   <Link
-                    href={`/products?category=${encodeURIComponent(CATEGORIES[catIdx])}`}
+                    href={categoryHref(CATEGORIES[catIdx])}
                     className="hover:underline decoration-chart-3/30 underline-offset-4 transition-all"
                   >
                     <ActionSwapText value={catIdx} animation="roll">
