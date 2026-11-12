@@ -16,22 +16,11 @@ import {
   ShieldCheck,
   ShieldUser,
   Package,
-  Cpu,
-  Armchair,
-  Car,
-  Shirt,
-  Smartphone,
-  BookOpen,
   ArrowUpRight,
-  Gamepad2,
-  Camera,
-  Dumbbell,
-  GraduationCap,
-  Briefcase,
-  Music,
   LayoutGrid,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { CATEGORIES as CATEGORY_OPTIONS, categoryHref } from "@/lib/product-options";
 import { ThemeToggle } from "../motion/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -64,20 +53,13 @@ const PROFILE_LINK = {
   admin: { href: "/dashboard/admin/profile", label: "My Profile", icon: <ShieldUser className="h-4 w-4 text-muted-foreground" /> },
 };
 
-const CATEGORIES = [
-  { name: "Electronics",    icon: Cpu,          color: "text-chart-1", bg: "bg-chart-1/10",  href: "/products?category=Electronics" },
-  { name: "Mobile Phones",  icon: Smartphone,   color: "text-chart-5", bg: "bg-chart-5/10",  href: "/products?category=Mobile+Phones" },
-  { name: "Furniture",      icon: Armchair,     color: "text-chart-2", bg: "bg-chart-2/10",  href: "/products?category=Furniture" },
-  { name: "Vehicles",       icon: Car,          color: "text-chart-3", bg: "bg-chart-3/10",  href: "/products?category=Vehicles" },
-  { name: "Fashion",        icon: Shirt,        color: "text-chart-4", bg: "bg-chart-4/10",  href: "/products?category=Fashion" },
-  { name: "Books",          icon: BookOpen,     color: "text-chart-1", bg: "bg-chart-1/10",  href: "/products?category=Books" },
-  { name: "Sports & Fitness", icon: Dumbbell,   color: "text-chart-3", bg: "bg-chart-3/10",  href: "/products?category=Sports+%26+Fitness" },
-  { name: "Gaming",         icon: Gamepad2,     color: "text-chart-5", bg: "bg-chart-5/10",  href: "/products?category=Gaming" },
-  { name: "Cameras",        icon: Camera,       color: "text-chart-2", bg: "bg-chart-2/10",  href: "/products?category=Cameras" },
-  { name: "Education",      icon: GraduationCap,color: "text-chart-4", bg: "bg-chart-4/10",  href: "/products?category=Education" },
-  { name: "Jobs & Services",icon: Briefcase,    color: "text-chart-1", bg: "bg-chart-1/10",  href: "/products?category=Jobs+%26+Services" },
-  { name: "Music",          icon: Music,        color: "text-chart-3", bg: "bg-chart-3/10",  href: "/products?category=Music" },
-];
+const CATEGORIES = CATEGORY_OPTIONS.map(({ name, icon, color, navBg }) => ({
+  name,
+  icon,
+  color,
+  bg: navBg,
+  href: categoryHref(name),
+}));
 
 const NAV_LINKS = [
   { href: "/", title: "Home" },

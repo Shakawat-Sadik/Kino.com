@@ -5,19 +5,11 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { EASE_OUT } from "@/lib/ease";
 import { ArrowRight, Tag, Heart, Eye } from "lucide-react";
-
-const CONDITION_COLOR = {
-  "Like New": "bg-chart-2/10 text-chart-2 border-chart-2/20",
-  Good: "bg-chart-3/10 text-chart-3 border-chart-3/20",
-  Used: "bg-chart-4/10 text-chart-4 border-chart-4/20",
-  Refurbished: "bg-chart-1/10 text-chart-1 border-chart-1/20",
-};
+import { CONDITION_COLOR, CONDITION_FALLBACK } from "@/lib/product-options";
 
 function ProductCard({ product, index }) {
   const image = product.images?.[0] || null;
-  const conditionClass =
-    CONDITION_COLOR[product.condition] ||
-    "bg-muted text-muted-foreground border-border";
+  const conditionClass = CONDITION_COLOR[product.condition] || CONDITION_FALLBACK;
 
   return (
     <motion.article

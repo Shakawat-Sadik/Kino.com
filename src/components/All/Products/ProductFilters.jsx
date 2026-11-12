@@ -7,13 +7,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-
-const CATEGORIES = [
-  "Electronics", "Mobile Phones", "Furniture", "Vehicles", "Fashion",
-  "Books", "Sports & Fitness", "Gaming", "Cameras", "Education",
-  "Jobs & Services", "Music", "Others",
-];
-const CONDITIONS = ["Like New", "Good", "Used", "Refurbished"];
+import { CATEGORY_NAMES as CATEGORIES, CONDITIONS } from "@/lib/product-options";
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
   { value: "price_asc", label: "Price: Low → High" },

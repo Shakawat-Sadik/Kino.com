@@ -11,8 +11,11 @@ const TILT_MAX = 8;
 const TILT_SPRING = { stiffness: 300, damping: 28 };
 const GLOW_SPRING = { stiffness: 180, damping: 22 };
 
+// Card-specific styling (adds a hover glow); keys follow CONDITIONS in @/lib/product-options.
 const CONDITION_COLOR = {
+  New:         { classes: "bg-chart-5/50 text-chart-2 border-chart-5/20", glow: "#34d399" },
   "Like New": { classes: "bg-chart-2/50 text-chart-4 border-chart-2/20", glow: "#22c55e" },
+  Fair:        { classes: "bg-chart-4/50 text-chart-2 border-chart-4/20", glow: "#fb923c" },
   Good:        { classes: "bg-chart-3/50 text-chart-5 border-chart-3/20", glow: "#86efac" },
   Used:        { classes: "bg-chart-4/50 text-chart-1 border-chart-4/20", glow: "#f59e0b" },
   Refurbished: { classes: "bg-chart-1/50 text-chart-3 border-chart-1/20", glow: "#60a5fa" },

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SquaresExclude, Mail, Phone, MapPin } from "lucide-react";
+import { categoryHref } from "@/lib/product-options";
 
 function FacebookIcon({ size = 14 }) {
   return (
@@ -42,12 +43,12 @@ const QUICK_LINKS = [
 ];
 
 const CATEGORY_LINKS = [
-  { href: "/products?category=Electronics", label: "Electronics" },
-  { href: "/products?category=Furniture", label: "Furniture" },
-  { href: "/products?category=Vehicles", label: "Vehicles" },
-  { href: "/products?category=Fashion", label: "Fashion" },
-  { href: "/products?category=Mobile+Phones", label: "Mobile Phones" },
-];
+  "Electronics",
+  "Furniture",
+  "Vehicles",
+  "Clothing & Garments",
+  "Mobile Phones",
+].map((label) => ({ href: categoryHref(label), label }));
 
 const SOCIAL = [
   { icon: FacebookIcon, href: "#", label: "Facebook" },
