@@ -535,16 +535,22 @@ export async function updateAdminUser(userId, { name, role, location, contact })
   if (role !== undefined) payload.role = role;
   if (location !== undefined) payload.location = location;
   if (contact !== undefined) payload.contact = contact;
-  return await fetchAPI(`/admin/users/${userId}`, {
+  const result = await fetchAPI(`/admin/users/${userId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+  // The backend copies name/location/contact into the seller's listings.
+  if (result.success) revalidateTag("products");
+  return result;
 }
 
 export async function deleteUser(userId) {
-  return await fetchAPI(`/admin/users/${userId}`, {
+  const result = await fetchAPI(`/admin/users/${userId}`, {
     method: "DELETE",
   });
+  // Deleting a seller also removes their unsold listings.
+  if (result.success && result.result?.removedListings > 0) revalidateTag("products");
+  return result;
 }
 
 // ─────────────────────────────────────────────────────────────

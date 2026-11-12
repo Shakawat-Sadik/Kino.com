@@ -45,24 +45,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Package, Plus, Pencil, Trash2, Search, X } from "lucide-react";
+import {
+  CATEGORY_NAMES as CATEGORIES,
+  CONDITIONS,
+  PRODUCT_STATUSES,
+} from "@/lib/product-options";
 
-const CATEGORIES = [
-  "Electronics",
-  "Mobile Phones",
-  "Furniture",
-  "Vehicles",
-  "Fashion",
-  "Books",
-  "Sports & Fitness",
-  "Gaming",
-  "Cameras",
-  "Education",
-  "Jobs & Services",
-  "Music",
-  "Others",
-];
-const CONDITIONS = ["Used", "Like New", "Refurbished"];
-const STATUSES = ["All", "pending", "available", "sold", "rejected"];
+const STATUSES = ["All", ...PRODUCT_STATUSES];
 
 export default function SellerProductsPage() {
   const [products, setProducts] = useState([]);
@@ -109,13 +98,30 @@ export default function SellerProductsPage() {
       category: form.category.value,
       condition: form.condition.value,
       price: Number(form.price.value),
+      quantity: Number(form.quantity.value),
+      // Empty strings clear the per-listing overrides server-side.
+      location2: form.location2.value.trim(),
+      mobile2: form.mobile2.value.trim(),
     };
     const res = await updateProduct(editProduct._id, updateData);
     if (res.success) {
       toast.success("Product updated");
+      const { mobile2, ...fields } = updateData;
       setProducts((prev) =>
         prev.filter(Boolean).map((p) =>
-          p._id === editProduct._id ? { ...p, ...updateData } : p
+          p._id === editProduct._id
+            ? {
+                ...p,
+                ...fields,
+                location2: fields.location2 || undefined,
+                sellerInfo: {
+                  ...p.sellerInfo,
+                  contact: { ...p.sellerInfo?.contact, mobile2: mobile2 || undefined },
+                },
+                // Quantity can flip sold <-> available; the server decides.
+                status: res.result?.status ?? p.status,
+              }
+            : p
         )
       );
       setEditProduct(null);
@@ -370,17 +376,59 @@ export default function SellerProductsPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-price" className="text-xs">Price (৳)</Label>
-                <Input
-                  id="edit-price"
-                  name="price"
-                  type="number"
-                  min="1"
-                  defaultValue={editProduct.price}
-                  required
-                  className="bg-background"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-price" className="text-xs">Price (৳)</Label>
+                  <Input
+                    id="edit-price"
+                    name="price"
+                    type="number"
+                    min="1"
+                    defaultValue={editProduct.price}
+                    required
+                    className="bg-background"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-quantity" className="text-xs">Quantity</Label>
+                  <Input
+                    id="edit-quantity"
+                    name="quantity"
+                    type="number"
+                    min="0"
+                    step="1"
+                    defaultValue={editProduct.quantity ?? 1}
+                    required
+                    className="bg-background"
+                  />
+                </div>
+              </div>
+              <p className="-mt-2 text-[11px] text-muted-foreground">
+                0 marks the listing sold; restocking a sold listing makes it available again.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-location2" className="text-xs">Listing Location</Label>
+                  <Input
+                    id="edit-location2"
+                    name="location2"
+                    defaultValue={editProduct.location2 ?? ""}
+                    placeholder="Defaults to your profile location"
+                    className="bg-background"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-mobile2" className="text-xs">Alternate Contact</Label>
+                  <Input
+                    id="edit-mobile2"
+                    name="mobile2"
+                    type="tel"
+                    defaultValue={editProduct.sellerInfo?.contact?.mobile2 ?? ""}
+                    placeholder="Optional, e.g. +8801XXXXXXXXX"
+                    className="bg-background"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-2 justify-end pt-2">

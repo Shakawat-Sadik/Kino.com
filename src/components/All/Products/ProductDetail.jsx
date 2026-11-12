@@ -16,20 +16,15 @@ import {
   Calendar,
 } from "lucide-react";
 import Image from "next/image";
-
-const CONDITION_COLOR = {
-  "Like New": "bg-chart-2/10 text-chart-2",
-  Good: "bg-chart-3/10 text-chart-3",
-  Used: "bg-chart-4/10 text-chart-4",
-  Refurbished: "bg-chart-1/10 text-chart-1",
-};
+import { CONDITION_COLOR, CONDITION_FALLBACK } from "@/lib/product-options";
 
 export default function ProductDetail({ product }) {
-  const conditionClass =
-    CONDITION_COLOR[product.condition] || "bg-muted text-muted-foreground";
+  const conditionClass = CONDITION_COLOR[product.condition] || CONDITION_FALLBACK;
 
-  const uploadedDate = product.dateUploaded
-    ? new Date(product.dateUploaded).toLocaleDateString("en-GB", {
+  // `createdAt` on the uniform shape; `dateUploaded` only on legacy docs.
+  const listedAt = product.createdAt ?? product.dateUploaded;
+  const uploadedDate = listedAt
+    ? new Date(listedAt).toLocaleDateString("en-GB", {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -139,7 +134,8 @@ export default function ProductDetail({ product }) {
             // while older products used sellerInfo.{name,email,phone}. Resolve
             // both shapes so the panel renders for either.
             const seller = product.sellerInfo;
-            const sellerImage = seller?.image || seller?.photo;
+            // Joined from the seller's user record by GET /products/:id.
+            const sellerImage = product.seller?.image;
             const sellerName = seller?.name || product.sellerName;
             const sellerEmail = seller?.email || product.sellerEmail;
             const mobile1 = seller?.phone || seller?.contact?.mobile1;
