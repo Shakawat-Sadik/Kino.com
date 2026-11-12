@@ -1,35 +1,16 @@
 "use client";
 import { motion } from "motion/react";
 import Link from "next/link";
-import {
-  Cpu, Armchair, Car, Shirt, Smartphone, BookOpen,
-  ArrowUpRight, Gamepad2, Camera, Dumbbell,
-  GraduationCap, Briefcase, Music, Utensils, Baby,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { EASE_OUT } from "@/lib/ease";
 import { Suspense } from "react";
-import { getProducts } from "@/lib/action/action";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const CATEGORIES = [
-  { name: "Electronics", icon: Cpu, color: "text-chart-1", bg: "from-chart-1/15 to-chart-1/5", border: "hover:border-chart-1/30", desc: "Laptops, cameras, headphones, gadgets & more" },
-  { name: "Mobile Phones", icon: Smartphone, color: "text-chart-5", bg: "from-chart-5/15 to-chart-5/5", border: "hover:border-chart-5/30", desc: "Smartphones, tablets, accessories & cases" },
-  { name: "Furniture", icon: Armchair, color: "text-chart-2", bg: "from-chart-2/15 to-chart-2/5", border: "hover:border-chart-2/30", desc: "Tables, chairs, sofas, beds & storage" },
-  { name: "Vehicles", icon: Car, color: "text-chart-3", bg: "from-chart-3/15 to-chart-3/5", border: "hover:border-chart-3/30", desc: "Cars, bikes, cycles & accessories" },
-  { name: "Fashion", icon: Shirt, color: "text-chart-4", bg: "from-chart-4/15 to-chart-4/5", border: "hover:border-chart-4/30", desc: "Clothing, shoes, bags & watches" },
-  { name: "Books", icon: BookOpen, color: "text-chart-1", bg: "from-chart-1/10 to-chart-1/3", border: "hover:border-chart-1/30", desc: "Textbooks, novels, guides & magazines" },
-  { name: "Sports & Fitness", icon: Dumbbell, color: "text-chart-3", bg: "from-chart-3/10 to-chart-3/3", border: "hover:border-chart-3/30", desc: "Gym equipment, outdoor gear & sportswear" },
-  { name: "Gaming", icon: Gamepad2, color: "text-chart-5", bg: "from-chart-5/10 to-chart-5/3", border: "hover:border-chart-5/30", desc: "Consoles, games, controllers & setups" },
-  { name: "Cameras", icon: Camera, color: "text-chart-2", bg: "from-chart-2/10 to-chart-2/3", border: "hover:border-chart-2/30", desc: "DSLRs, lenses, tripods & accessories" },
-  { name: "Education", icon: GraduationCap, color: "text-chart-4", bg: "from-chart-4/10 to-chart-4/3", border: "hover:border-chart-4/30", desc: "Study materials, instruments & supplies" },
-  { name: "Jobs & Services", icon: Briefcase, color: "text-chart-1", bg: "from-chart-1/10 to-chart-1/3", border: "hover:border-chart-1/30", desc: "Office equipment, tools & services" },
-  { name: "Music", icon: Music, color: "text-chart-3", bg: "from-chart-3/10 to-chart-3/3", border: "hover:border-chart-3/30", desc: "Instruments, speakers & audio gear" },
-];
+import { CATEGORIES, categoryHref } from "@/lib/product-options";
 
 function CategoryGrid() {
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      {CATEGORIES.map(({ name, icon: Icon, color, bg, border, desc }, i) => (
+      {CATEGORIES.map(({ name, icon: Icon, color, bg, border, longDesc: desc }, i) => (
         <motion.div
           key={name}
           initial={{ opacity: 0, y: 24, filter: "blur(4px)" }}
@@ -39,7 +20,7 @@ function CategoryGrid() {
           whileHover={{ y: -6, transition: { duration: 0.25 } }}
         >
           <Link
-            href={`/products?category=${encodeURIComponent(name)}`}
+            href={categoryHref(name)}
             className={`group relative flex items-start gap-5 rounded-2xl border border-border/50 bg-card p-6 transition-all duration-300 hover:shadow-xl hover:shadow-black/5 ${border} overflow-hidden`}
           >
             {/* Background glow on hover */}
@@ -68,7 +49,7 @@ function CategoryGrid() {
 function CategoryGridSkeleton() {
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      {Array.from({ length: 12 }).map((_, i) => (
+      {Array.from({ length: CATEGORIES.length }).map((_, i) => (
         <div key={i} className="rounded-2xl border border-border/50 bg-card p-6 flex items-start gap-5">
           <Skeleton className="h-14 w-14 rounded-2xl shrink-0" />
           <div className="flex-1 space-y-2">
@@ -98,7 +79,7 @@ export default function CategoriesPage() {
             transition={{ duration: 0.5 }}
             className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 backdrop-blur-sm px-4 py-1.5 text-xs font-medium text-muted-foreground"
           >
-            12 Categories
+            {CATEGORIES.length} Categories
           </motion.div>
 
           <motion.h1
