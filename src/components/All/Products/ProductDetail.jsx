@@ -85,7 +85,7 @@ export default function ProductDetail({ product }) {
 
           {/* Description */}
           {product.description && (
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
               {product.description}
             </p>
           )}
