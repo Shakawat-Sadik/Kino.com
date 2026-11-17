@@ -3,6 +3,8 @@
  * Category names must match the stored `products.category` values exactly
  * (see docs/product-schema-and-seller-snapshot.md §1c).
  */
+import { Keyboard } from "lucide-react";
+import { Computer } from "lucide-react";
 import {
   Armchair,
   BookOpen,
@@ -15,9 +17,7 @@ import {
   Gamepad2,
   GraduationCap,
   Headphones,
-  Keyboard,
   Laptop,
-  Mouse,
   Package,
   Shirt,
   Smartphone,
@@ -43,7 +43,7 @@ export const CATEGORIES = [
   { name: "Mobile Phones",            icon: Smartphone,    ...TONES[5], count: "1.8k+", desc: "Smartphones & tablets",        longDesc: "Smartphones, feature phones & tablets" },
   { name: "Mobile Accessories",       icon: Headphones,    ...TONES[2], count: "1.1k+", desc: "Chargers, cases, earbuds",     longDesc: "Chargers, cables, cases, earbuds & power banks" },
   { name: "PC & Laptops",             icon: Laptop,        ...TONES[3], count: "1.6k+", desc: "Laptops, desktops, MacBooks",  longDesc: "Laptops, desktops, MacBooks & workstations" },
-  { name: "PC & Laptops Gadgets",     icon: Mouse,         ...TONES[4], count: "780+",  desc: "Mice, webcams, drives",        longDesc: "Mice, webcams, external drives, docks & more" },
+  { name: "PC & Laptops Gadgets",     icon: Computer,         ...TONES[4], count: "780+",  desc: "Mice, webcams, drives",        longDesc: "Mice, webcams, external drives, docks & more" },
   { name: "PC & Laptop Accessories",  icon: Keyboard,      ...TONES[5], count: "860+",  desc: "Monitors, keyboards, bags",    longDesc: "Monitors, keyboards, laptop bags, stands & cooling pads" },
   { name: "Furniture",                icon: Armchair,      ...TONES[2], count: "1.2k+", desc: "Tables, chairs, sofas",        longDesc: "Tables, chairs, sofas, beds & storage" },
   { name: "Vehicles",                 icon: Car,           ...TONES[3], count: "890+",  desc: "Cars, bikes, accessories",     longDesc: "Cars, bikes, cycles & accessories" },
@@ -60,6 +60,7 @@ export const CATEGORIES = [
 ];
 
 export const CATEGORY_NAMES = CATEGORIES.map((c) => c.name);
+export const CATEGORY_ICONS = CATEGORIES.map((c) => c.icon);
 
 export function categoryHref(name) {
   return `/products?category=${encodeURIComponent(name)}`;
