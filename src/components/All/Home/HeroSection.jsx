@@ -170,7 +170,7 @@ export default function HeroSection({ stats }) {
                     size="lg"
                     className="h-12 rounded-full px-8 gap-2.5 bg-foreground text-background hover:bg-foreground/80 shadow-lg shadow-foreground/20"
                   >
-                    <Link href="/dashboard/seller/products/new">
+                    <Link href="/dashboard/seller/products/add">
                       <PlusCircle size={16} />
                       Start Selling
                     </Link>
