@@ -1,11 +1,11 @@
 "use client";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ActionSwapText } from "@/components/motion/action-swap";
 import { ScrollTo } from "@/components/motion/scroll-to";
-import { EASE_OUT } from "@/lib/ease";
+import { EASE_IN_OUT, EASE_OUT } from "@/lib/ease";
 import {
   ArrowRight,
   ShoppingBag,
@@ -15,11 +15,10 @@ import {
   ShieldCheck,
   Users,
   Package,
-  Sparkles,
   Zap,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { CATEGORY_NAMES as CATEGORIES, categoryHref } from "@/lib/product-options";
+import { CATEGORY_NAMES as CATEGORIES, CATEGORY_ICONS as ICONS, categoryHref } from "@/lib/product-options";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 32, filter: "blur(6px)" },
@@ -40,6 +39,7 @@ export default function HeroSection({ stats }) {
   const [catIdx, setCatIdx] = useState(0);
   const { data: session } = authClient.useSession();
   const role = session?.user?.role;
+  const CategoryIcon = ICONS[catIdx];
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -60,7 +60,7 @@ export default function HeroSection({ stats }) {
     >
       {/* Animated gradient mesh background */}
       <motion.div className="absolute inset-0" style={{ y: bgY }}>
-        <div className="absolute inset-0 bg-linear-to-br from-background via-background to-muted/40" />
+        <div className="absolute inset-0 bg-linear-to-t from-background via-background to-muted/40" />
 
         {/* Floating gradient orbs */}
         <motion.div
@@ -103,13 +103,13 @@ export default function HeroSection({ stats }) {
 
       <motion.div
         style={{ opacity }}
-        className="relative mx-auto max-w-7xl px-4 w-full py-20 md:py-28 lg:py-0"
+        className="relative mx-auto max-w-[80vw] px-4 w-full py-20 md:py-28 lg:py-0"
       >
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-12 lg:gap-12 xl:gap-16 items-center">
           {/* Left: Content */}
-          <div className="text-center lg:text-left">
+          <div className="@container relative z-10 min-w-0 text-center lg:text-left">
             {/* Eyebrow badge */}
-            <motion.div
+            {/* <motion.div
               {...(reduce ? {} : fadeUp(0))}
               className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-border/60 bg-card/80 backdrop-blur-sm px-5 py-2 text-xs font-medium text-muted-foreground shadow-sm"
             >
@@ -119,7 +119,7 @@ export default function HeroSection({ stats }) {
               </span>
               Bangladesh&apos;s trusted second-hand marketplace
               <TrendingUp size={12} className="text-chart-3" />
-            </motion.div>
+            </motion.div> */}
 
             {/* Headline */}
             <motion.h1
@@ -127,8 +127,11 @@ export default function HeroSection({ stats }) {
               className="flex flex-col text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-foreground"
             >
               Buy &amp; Sell{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10 text-chart-3">
+              {/* Fixed-height row so shrinking long names doesn't shift the layout */}
+              <span className="relative flex h-[1.1em] items-center justify-center lg:justify-start">
+                <span
+                  className="relative z-10 text-chart-3"
+                >
                   <Link
                     href={categoryHref(CATEGORIES[catIdx])}
                     className="hover:underline decoration-chart-3/30 underline-offset-4 transition-all"
@@ -146,15 +149,15 @@ export default function HeroSection({ stats }) {
                 </span>
               </span>
               <br />
-              <span className="text-foreground/50">with Confidence</span>
+              <span className="text-foreground/50">with Kino</span>
             </motion.h1>
 
             {/* Subtitle */}
             <motion.p
               {...(reduce ? {} : fadeUp(0.2))}
-              className="mt-6 text-lg md:text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0 leading-relaxed"
+              className="mt-6 text-sm md:text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0 leading-relaxed"
             >
-              Kino.com connects buyers and sellers across Bangladesh for safe,
+              Kino connects you to people selling products across Bangladesh for safe,
               affordable, and sustainable commerce.
             </motion.p>
 
@@ -266,14 +269,15 @@ export default function HeroSection({ stats }) {
           </div>
 
           {/* Right: Visual element */}
+          {/* w-full max-w-sm xl:max-w-md justify-self-end*/}
           <motion.div
             {...(reduce ? {} : { initial: { opacity: 0, scale: 0.9, x: 40 }, animate: { opacity: 1, scale: 1, x: 0, transition: { duration: 0.8, ease: EASE_OUT, delay: 0.3 } }})}
             className="relative hidden lg:block"
           >
             <div className="relative">
               {/* Main visual card */}
-              <div className="relative rounded-3xl border border-border/50 bg-card/60 backdrop-blur-sm p-8 shadow-2xl shadow-chart-3/5">
-                <div className="aspect-square rounded-2xl bg-linear-to-br from-chart-3/10 via-chart-2/5 to-chart-1/10 flex items-center justify-center overflow-hidden">
+              <div className="relative rounded-3xl border border-border/50 bg-card/60 backdrop-blur-sm p-6 shadow-2xl shadow-chart-3/5">
+                <div className="aspect-square rounded-2xl bg-radial-[at_75%_45%] from-chart-4/5 via-chart-2/5 to-chart-1/10 flex items-center justify-center overflow-hidden">
                   {/* Decorative elements inside */}
                   <div className="relative w-full h-full flex items-center justify-center">
                     <motion.div
@@ -283,8 +287,32 @@ export default function HeroSection({ stats }) {
                     >
                       <div className="h-48 w-48 rounded-3xl border-2 border-dashed border-chart-3/30 flex items-center justify-center">
                         <div className="h-32 w-32 rounded-2xl border-2 border-dashed border-chart-2/30 flex items-center justify-center">
-                          <div className="h-16 w-16 rounded-xl bg-chart-3/20 flex items-center justify-center">
-                            <Sparkles className="h-8 w-8 text-chart-3" />
+                          <div className="h-16 w-16 rounded-xl bg-chart-3/20 flex items-center justify-center [perspective:600px]">
+                            {/* Category icon: pops in with overshoot, flips on Y, rolls on Z */}
+                            <AnimatePresence mode="wait" initial={false}>
+                              <motion.span
+                                key={catIdx}
+                                className="flex will-change-transform"
+                                style={{ transformStyle: "preserve-3d" }}
+                                initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0, rotateY: -180, rotate: -90 }}
+                                animate={{
+                                  opacity: 1,
+                                  scale: 1,
+                                  rotateY: 0,
+                                  rotate: 0,
+                                  transition: reduce
+                                    ? { duration: 0.2 }
+                                    : { type: "spring", stiffness: 320, damping: 14, mass: 0.8 },
+                                }}
+                                exit={
+                                  reduce
+                                    ? { opacity: 0, transition: { duration: 0.15 } }
+                                    : { opacity: 0, scale: 0.2, rotateY: 180, rotate: 90, transition: { duration: 0.22, ease: EASE_IN_OUT } }
+                                }
+                              >
+                                <CategoryIcon className="h-8 w-8 text-chart-3" />
+                              </motion.span>
+                            </AnimatePresence>
                           </div>
                         </div>
                       </div>
@@ -342,7 +370,7 @@ export default function HeroSection({ stats }) {
               </div>
 
               {/* Background glow */}
-              <div className="absolute -inset-4 rounded-[2rem] bg-linear-to-r from-chart-3/10 via-chart-2/5 to-chart-1/10 blur-2xl -z-10" />
+              <div className="absolute -inset-4 rounded-[2rem] bg-linear-to-t from-chart-3/10 via-chart-2/5 to-chart-1/10 blur-2xl -z-10" />
             </div>
           </motion.div>
         </div>
