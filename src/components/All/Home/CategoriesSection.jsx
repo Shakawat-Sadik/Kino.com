@@ -9,7 +9,8 @@ export default function CategoriesSection() {
   return (
     <section className="relative py-20 md:py-28">
       {/* Subtle background */}
-      <div className="absolute inset-0 bg-linear-to-b from-transparent via-muted/30 to-transparent" />
+      {/* Disabled: page-level SectionRelay now provides the background */}
+      {/* <div className="absolute inset-0 bg-linear-to-b from-transparent via-muted/30 to-transparent" /> */}
 
       <div className="relative mx-auto max-w-7xl px-4">
         <div className="mb-14 text-center">

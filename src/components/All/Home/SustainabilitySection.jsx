@@ -42,7 +42,8 @@ export default function SustainabilitySection() {
   return (
     <section className="relative py-20 md:py-28 overflow-hidden">
       {/* Green tinted background */}
-      <div className="absolute inset-0 bg-linear-to-b from-transparent via-chart-2/4 to-transparent" />
+      {/* Disabled: page-level SectionRelay now provides the background */}
+      {/* <div className="absolute inset-0 bg-linear-to-b from-transparent via-chart-2/4 to-transparent" /> */}
       <div className="absolute top-0 right-0 h-87.5 w-87.5 rounded-full bg-chart-2/8 blur-[100px]" />
       <div className="absolute bottom-0 left-1/4 h-62.5 w-62.5 rounded-full bg-chart-1/8 blur-[80px]" />
 

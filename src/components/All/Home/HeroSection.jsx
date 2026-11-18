@@ -18,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { relayColor } from "@/components/All/Home/SectionRelay";
 import { CATEGORY_NAMES as CATEGORIES, CATEGORY_ICONS as ICONS, categoryHref } from "@/lib/product-options";
 
 const fadeUp = (delay = 0) => ({
@@ -100,6 +101,13 @@ export default function HeroSection({ stats }) {
           }}
         />
       </motion.div>
+
+      {/* Static (non-parallax) fade so the hero always ends on the relay's first color */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3"
+        style={{ backgroundImage: `linear-gradient(to bottom, transparent, ${relayColor("chart-1")})` }}
+      />
 
       <motion.div
         style={{ opacity }}
@@ -287,7 +295,7 @@ export default function HeroSection({ stats }) {
                     >
                       <div className="h-48 w-48 rounded-3xl border-2 border-dashed border-chart-3/30 flex items-center justify-center">
                         <div className="h-32 w-32 rounded-2xl border-2 border-dashed border-chart-2/30 flex items-center justify-center">
-                          <div className="h-16 w-16 rounded-xl bg-chart-3/20 flex items-center justify-center [perspective:600px]">
+                          <div className="h-16 w-16 rounded-xl bg-chart-3/20 flex items-center justify-center perspective:[600px]">
                             {/* Category icon: pops in with overshoot, flips on Y, rolls on Z */}
                             <AnimatePresence mode="wait" initial={false}>
                               <motion.span

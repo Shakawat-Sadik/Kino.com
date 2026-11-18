@@ -13,6 +13,7 @@ import {
 } from "@/lib/action/action";
 import CTABanner from "@/components/All/Home/CTA";
 import HowItWorksSection from "@/components/All/Home/HowItWorks";
+import SectionRelay from "@/components/All/Home/SectionRelay";
 
 export default async function Home() {
   const [productsData, statsData, reviewsData, sellersData] = await Promise.all([
@@ -30,14 +31,30 @@ export default async function Home() {
   return (
     <div className="flex flex-col">
       <HeroSection stats={stats} />
-      <FeaturedProducts products={products} />
-      <CategoriesSection />
-      <HowItWorksSection />
-      <SuccessStories reviews={reviews} />
+      {/* Color relay: each section starts on the color the previous one ended on */}
+      <SectionRelay from="chart-1" to="chart-2">
+        <FeaturedProducts products={products} />
+      </SectionRelay>
+      <SectionRelay from="chart-2" to="chart-3">
+        <CategoriesSection />
+      </SectionRelay>
+      <SectionRelay from="chart-3" to="chart-1">
+        <HowItWorksSection />
+      </SectionRelay>
+      <SectionRelay from="chart-1" to="chart-2">
+        <SuccessStories reviews={reviews} />
+      </SectionRelay>
+      {/* Dark band: deliberate break; relay resumes on chart-2 after it */}
       <StatsSection stats={stats} />
-      <SustainabilitySection />
-      <TrustedSellers sellers={sellers} />
-      <CTABanner />
+      <SectionRelay from="chart-2" to="chart-3">
+        <SustainabilitySection />
+      </SectionRelay>
+      <SectionRelay from="chart-3" to="chart-1">
+        <TrustedSellers sellers={sellers} />
+      </SectionRelay>
+      <SectionRelay from="chart-1" to="background">
+        <CTABanner />
+      </SectionRelay>
     </div>
   );
 }
